@@ -45,6 +45,8 @@ arg_proc.add_argument("-o", help="Output Cabrillo file",
 arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
 arg_proc.add_argument("-after", help="Starting Date",
                               type=str,default='01/01/1900')
+arg_proc.add_argument("-call", help="Call worked",
+                              type=str,default=None)
 arg_proc.add_argument("-hist", help="History File",
                               type=str,default='')
 args = arg_proc.parse_args()
@@ -144,6 +146,12 @@ for qso in QSOs:
             if (not 'qth' in qso) or (len(qso['qth'])==0):
                 qso['qth']=qth
         else:
+            save_qso=False
+
+    # Are we looking for a specific call?
+    if args.call!=None:
+        call=args.call.upper()
+        if qso['call'].upper()!=call:
             save_qso=False
 
     # If we passed all the criteria, add this qso to our list
