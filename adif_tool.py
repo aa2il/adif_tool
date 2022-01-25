@@ -92,7 +92,7 @@ for f in input_files:
     p,n,ext=parse_file_name(fname)
     if ext=='.csv':
         print('Reading CSV file ...')
-        qsos1=read_csv_file(fname)
+        qsos1,=read_csv_file(fname)
     else:
         qsos1 = parse_adif(fname)
         #qsos1 = read_adif(fname)
