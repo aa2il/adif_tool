@@ -25,9 +25,10 @@ import os
 import datetime
 import argparse
 import numpy as np
-from load_history import *
+#from load_history import *
+#from fileio import parse_file_name,parse_adif,sort_keys,write_adif_log
 from fileio import *
-from settings import *
+from settings import CONFIG_PARAMS
 
 #######################################################################################
 
@@ -43,18 +44,19 @@ arg_proc.add_argument("-i", help="Input ADIF file",
 arg_proc.add_argument("-o", help="Output Cabrillo file",
                               type=str,default='New.adif')
 arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
+arg_proc.add_argument("-days", help="Last N days",
+                              type=int,default=0)
 arg_proc.add_argument("-after", help="Starting Date",
-                              type=str,default='01/01/1900')
+                              type=str,default=None)
 arg_proc.add_argument("-call", help="Call worked",
                               type=str,default=None)
-arg_proc.add_argument("-hist", help="History File",
-                              type=str,default='')
 args = arg_proc.parse_args()
 P=CONFIG_PARAMS('.keyerrc')
 
 fname = args.i
 if fname==None:
-    fname=P.SETTINGS['MY_CALL']+'.adif'
+    MY_CALL=P.SETTINGS['MY_CALL']
+    fname=['~/logs/'+MY_CALL+'.adif','~/logs/wsjtx_log.adi']
 if type(fname) == list:   
     input_files  = fname
 else:
@@ -63,13 +65,20 @@ else:
 
 output_file = args.o
 
-history = args.hist
-
 after=args.after
-if len(after.split('/'))==2:
-    after=after+'/2021'
-date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
+ndays=args.days
+if after:
+    if len(after.split('/'))==2:
+        after=after+'/2022'
+    date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
 
+elif ndays>0:
+    now = datetime.datetime.utcnow()
+    date0 = now-datetime.timedelta(days=ndays) 
+
+else:
+    date0=datetime.datetime.strptime( '01/01/1900', "%m/%d/%Y")  # Start date
+    
 ################################################################################
 
 # Start of main
