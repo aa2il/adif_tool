@@ -25,8 +25,6 @@ import os
 import datetime
 import argparse
 import numpy as np
-#from load_history import *
-#from fileio import parse_file_name,parse_adif,sort_keys,write_adif_log
 from fileio import *
 from settings import CONFIG_PARAMS
 
@@ -56,7 +54,9 @@ P=CONFIG_PARAMS('.keyerrc')
 fname = args.i
 if fname==None:
     MY_CALL=P.SETTINGS['MY_CALL']
-    fname=['~/logs/'+MY_CALL+'.adif','~/logs/wsjtx_log.adi']
+    fname=[]
+    for fn in [MY_CALL+'.adif','wsjtx_log.adi','sats.adif','wsjtx_log_RPi991a.adi']:
+        fname.append(DIR_NAME+fn)
 if type(fname) == list:   
     input_files  = fname
 else:
