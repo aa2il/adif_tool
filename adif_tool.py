@@ -210,10 +210,10 @@ for i in range(len(QSOs_out2)):
 # Finally write out list of Q's
 p,n,ext=parse_file_name(output_file)
 if ext=='.csv':
-    print('Writing output CSV file ...')
+    print('Writing output CSV file with',len(QSOs_out3,' QSOs ...')
     write_csv_file(output_file,KEYS2,QSOs_out3)
 else:
-    print('Writing output adif file ...')
+    print('Writing output adif file with',len(QSOs_out2,' QSOs ...')
     P.contest_name=''
     write_adif_log(QSOs_out2,output_file,P)
 
