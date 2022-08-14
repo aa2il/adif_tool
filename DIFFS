@@ -1,0 +1,10 @@
+----------------------------------
+DIFF
+ 
+41,42c41,42
+<         kompare $old/$i $i
+<         #kompare $i $old/$i
+---
+>         #kompare $old/$i $i
+>         kompare $i $old/$i
+ 
