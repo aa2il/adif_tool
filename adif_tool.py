@@ -27,6 +27,7 @@ import argparse
 import numpy as np
 from fileio import *
 from settings import CONFIG_PARAMS
+from operator import itemgetter
 
 #######################################################################################
 
@@ -55,7 +56,7 @@ fname = args.i
 if fname==None:
     MY_CALL=P.SETTINGS['MY_CALL']
     fname=[]
-    for fn in [MY_CALL+'.adif','wsjtx_log.adi','sats.adif','wsjtx_log_RPi991a.adi']:
+    for fn in [MY_CALL+'.adif','wsjtx_log.adi','sats.adif','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi']:
         fname.append(DIR_NAME+fn)
 if type(fname) == list:   
     input_files  = fname
@@ -101,7 +102,7 @@ for f in input_files:
     p,n,ext=parse_file_name(fname)
     if ext=='.csv':
         print('Reading CSV file ...')
-        qsos1,=read_csv_file(fname)
+        qsos1,hdr=read_csv_file(fname)
     else:
         qsos1 = parse_adif(fname)
         #qsos1 = read_adif(fname)
@@ -172,13 +173,12 @@ print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
         
 # Write out new adif or csv file
 KEYS2=sort_keys(KEYS)
-print('KEYS2=',KEYS2)
-
 print('fname=',output_file)
+print('\nKEYS2=',KEYS2)
 
 # Sort list of Q's by date & time
-from operator import itemgetter
 QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
+#print('rec0=',QSOs_out2[0])
 
 # Merge the same Q's
 QSOs_out3=[]
@@ -203,6 +203,10 @@ for i in range(len(QSOs_out2)):
                     if key!='unique' and (key not in keys1 or len(qso1[key])==0):
                         qso1[key]=qso2[key]
         QSOs_out3.append(qso1)
+
+        #print(i,QSOs_out2[i]['time_off'])
+        #if len(QSOs_out2[i]['time_off'])<6:
+        #    print('rec=',QSOs_out2[i])
 
 #print(valid)        
 #print(len(QSOs_out2),len(QSOs_out3))
