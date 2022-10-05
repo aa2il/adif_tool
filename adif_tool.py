@@ -38,9 +38,9 @@ DIR_NAME = '~/.fldigi/logs/'
 
 # Process command line args
 arg_proc = argparse.ArgumentParser()
-arg_proc.add_argument("-i", help="Input ADIF file",
+arg_proc.add_argument("-i", help="Input ADIF or CSV file",
                               type=str,default=None,nargs='*')
-arg_proc.add_argument("-o", help="Output Cabrillo file",
+arg_proc.add_argument("-o", help="Output ADIF or CSV file",
                               type=str,default='New.adif')
 arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
 arg_proc.add_argument("-days", help="Last N days",
@@ -115,12 +115,23 @@ print("There are ",len(QSOs)," input QSOs ...")
 
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
-KEYS=set()
+#KEYS=set()
+KEYS=[]
 for qso in QSOs:
-    #print(qso)
+    #KEYS.update(qso.keys())
+    for key in qso.keys():
+        if key not in KEYS:
+            print('Adding key',key)
+            KEYS.append(key)
 
-    KEYS.update(qso.keys())
-
+    if False:
+        print(qso)
+        keys=qso.keys()
+        print('\n Keys=',keys)
+        print('\n Keys=',set(keys))
+        print(' ')
+        sys.exit(0)
+    
     # Get qso date
     if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
         date_off = datetime.datetime.strptime( qso['qso_date_off'], "%Y%m%d")
@@ -172,7 +183,8 @@ for qso in QSOs:
 print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
         
 # Write out new adif or csv file
-KEYS2=sort_keys(KEYS)
+#KEYS2=sort_keys(KEYS)
+KEYS2=KEYS
 print('fname=',output_file)
 print('\nKEYS2=',KEYS2)
 
@@ -204,10 +216,6 @@ for i in range(len(QSOs_out2)):
                         qso1[key]=qso2[key]
         QSOs_out3.append(qso1)
 
-        #print(i,QSOs_out2[i]['time_off'])
-        #if len(QSOs_out2[i]['time_off'])<6:
-        #    print('rec=',QSOs_out2[i])
-
 #print(valid)        
 #print(len(QSOs_out2),len(QSOs_out3))
         
@@ -219,7 +227,7 @@ if ext=='.csv':
 else:
     print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
     P.contest_name=''
-    write_adif_log(QSOs_out2,output_file,P)
+    write_adif_log(QSOs_out2,output_file,P,SORT_KEYS=False)
 
 print("\nThat's all folks!")
 
