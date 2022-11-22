@@ -2,7 +2,7 @@
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Program to manipulate adif files.
 #
@@ -25,14 +25,15 @@ import os
 import datetime
 import argparse
 import numpy as np
-from fileio import *
+from fileio import parse_file_name,parse_adif,write_adif_log
 from settings import CONFIG_PARAMS
 from operator import itemgetter
+import glob 
 
 #######################################################################################
 
 # User params
-DIR_NAME = '~/.fldigi/logs/'
+DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
 
 #######################################################################################
 
@@ -52,16 +53,23 @@ arg_proc.add_argument("-call", help="Call worked",
 args = arg_proc.parse_args()
 P=CONFIG_PARAMS('.keyerrc')
 
+# Form list of file names
 fname = args.i
 if fname==None:
+
+    # Use usual defaults if nothing speficied
     MY_CALL=P.SETTINGS['MY_CALL']
     fname=[]
-    for fn in [MY_CALL+'.adif','wsjtx_log.adi','sats.adif','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi']:
-        fname.append(DIR_NAME+fn)
+    for fn in [MY_CALL+'*.adif','wsjtx_log.adi','sats.adif']:  # ,'wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi']:
+        fname.append(fn)
+
+# Expand wildcards if necessary        
 if type(fname) == list:   
-    input_files  = fname
+    input_files  = []
+    for fn in fname:
+        for fn2 in glob.glob(DIR_NAME+fn):
+            input_files.append(fn2)
 else:
-    #input_files  = [DIR_NAME + '/' + fname]
     input_files  = [fname]
 
 output_file = args.o
@@ -88,6 +96,7 @@ print('\nADIF Tool beginning')
 print('\nInput file(s):',input_files)
 print('OUTPUT FILE=',output_file)
 print('Start Date=',date0)
+print(' ')
 #sys.exit(0)
 
 # Init
@@ -97,7 +106,7 @@ istart  = -1
 QSOs=[]
 for f in input_files:
     fname=os.path.expanduser( f )
-    print('\nInput file:',fname)
+    print('Input file:',fname)
 
     p,n,ext=parse_file_name(fname)
     if ext=='.csv':
@@ -105,23 +114,18 @@ for f in input_files:
         qsos1,hdr=read_csv_file(fname)
     else:
         qsos1 = parse_adif(fname)
-        #qsos1 = read_adif(fname)
         
     QSOs = QSOs + qsos1
     
-#print(qsos1[0])
-#print(qsos1[-1])
-print("There are ",len(QSOs)," input QSOs ...")
+print("\nThere are ",len(QSOs)," input QSOs ...")
 
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
-#KEYS=set()
 KEYS=[]
 for qso in QSOs:
-    #KEYS.update(qso.keys())
     for key in qso.keys():
         if key not in KEYS:
-            print('Adding key',key)
+            #print('Adding key',key)
             KEYS.append(key)
 
     if False:

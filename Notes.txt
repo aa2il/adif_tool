@@ -1,0 +1,3 @@
+adif_tool.py -i ~/logs/wsjtx_log_[FI]*.adi ~/logs/AA2IL_RPi.adif -days 7
+
+
