@@ -25,86 +25,25 @@ import os
 import datetime
 import argparse
 import numpy as np
+from params import *
 from fileio import parse_file_name,parse_adif,write_adif_log
-from settings import CONFIG_PARAMS
-from operator import itemgetter
-import glob 
+from pprint import pprint
 
 #######################################################################################
-
-# User params
-DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
-
-#######################################################################################
-
-# Process command line args
-arg_proc = argparse.ArgumentParser()
-arg_proc.add_argument("-i", help="Input ADIF or CSV file",
-                              type=str,default=None,nargs='*')
-arg_proc.add_argument("-o", help="Output ADIF or CSV file",
-                              type=str,default='New.adif')
-arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
-arg_proc.add_argument("-days", help="Last N days",
-                              type=int,default=0)
-arg_proc.add_argument("-after", help="Starting Date",
-                              type=str,default=None)
-arg_proc.add_argument("-call", help="Call worked",
-                              type=str,default=None)
-args = arg_proc.parse_args()
-P=CONFIG_PARAMS('.keyerrc')
-
-# Form list of file names
-fname = args.i
-if fname==None:
-
-    # Use usual defaults if nothing speficied
-    MY_CALL=P.SETTINGS['MY_CALL']
-    fname=[]
-    for fn in [MY_CALL+'*.adif','wsjtx_log.adi','sats.adif']:  # ,'wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi']:
-        fname.append(fn)
-
-# Expand wildcards if necessary        
-if type(fname) == list:   
-    input_files  = []
-    for fn in fname:
-        for fn2 in glob.glob(DIR_NAME+fn):
-            input_files.append(fn2)
-else:
-    input_files  = [fname]
-
-output_file = args.o
-
-after=args.after
-ndays=args.days
-if after:
-    if len(after.split('/'))==2:
-        after=after+'/2022'
-    date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
-
-elif ndays>0:
-    now = datetime.datetime.utcnow()
-    date0 = now-datetime.timedelta(days=ndays) 
-
-else:
-    date0=datetime.datetime.strptime( '01/01/1900', "%m/%d/%Y")  # Start date
-    
-################################################################################
 
 # Start of main
 print('\n****************************************************************************')
-print('\nADIF Tool beginning')
-print('\nInput file(s):',input_files)
-print('OUTPUT FILE=',output_file)
-print('Start Date=',date0)
-print(' ')
-#sys.exit(0)
+print('\nADIF Tool beginning ...\n')
+P=PARAMS()
+print("P=")
+pprint(vars(P))
 
 # Init
 istart  = -1
 
 # Read adif input file(s)
 QSOs=[]
-for f in input_files:
+for f in P.input_files:
     fname=os.path.expanduser( f )
     print('Input file:',fname)
 
@@ -148,13 +87,13 @@ for qso in QSOs:
         sys.exit(0)
 
     # Is the qso date in our window?
-    if date_off>=date0:
+    if date_off>=P.date0 and date_off<=P.date1:
         save_qso=True
     else:
         save_qso=False
 
     # Are we looking for satellite qsos?
-    if args.sats:
+    if P.SATS:
         if 'sat_name' in qso:
             if 'gridsquare' in qso:
                 qth=qso['gridsquare'][:4]
@@ -174,9 +113,8 @@ for qso in QSOs:
             save_qso=False
 
     # Are we looking for a specific call?
-    if args.call!=None:
-        call=args.call.upper()
-        if qso['call'].upper()!=call:
+    if P.CALL!=None:
+        if qso['call'].upper()!=P.CALL:
             save_qso=False
 
     # If we passed all the criteria, add this qso to our list
@@ -189,7 +127,7 @@ print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
 # Write out new adif or csv file
 #KEYS2=sort_keys(KEYS)
 KEYS2=KEYS
-print('fname=',output_file)
+print('fname=',P.output_file)
 print('\nKEYS2=',KEYS2)
 
 # Sort list of Q's by date & time
@@ -224,14 +162,14 @@ for i in range(len(QSOs_out2)):
 #print(len(QSOs_out2),len(QSOs_out3))
         
 # Finally write out list of Q's
-p,n,ext=parse_file_name(output_file)
+p,n,ext=parse_file_name(P.output_file)
 if ext=='.csv':
     print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
-    write_csv_file(output_file,KEYS2,QSOs_out3)
+    write_csv_file(P.output_file,KEYS2,QSOs_out3)
 else:
     print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
     P.contest_name=''
-    write_adif_log(QSOs_out2,output_file,P,SORT_KEYS=False)
+    write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False)
 
 print("\nThat's all folks!")
 
