@@ -45,6 +45,7 @@ class PARAMS:
         arg_proc.add_argument("-o", help="Output ADIF or CSV file",
                               type=str,default='New.adif')
         arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
+        arg_proc.add_argument('-all', action='store_true',help='Search All Logs in ~/logs')
         arg_proc.add_argument("-days", help="Last N days",
                               type=int,default=0)
         arg_proc.add_argument("-after", help="Starting Date",
@@ -68,6 +69,8 @@ class PARAMS:
 
         # Form list of file names
         fname = args.i
+        if args.all:
+            fname=['*.adi','*.adif','fflog/*.adi*']
         if fname==None:
 
             # Use usual defaults if nothing speficied

@@ -53,7 +53,10 @@ for f in P.input_files:
         qsos1,hdr=read_csv_file(fname)
     else:
         qsos1 = parse_adif(fname)
-        
+
+    for qso in qsos1:
+        qso['file_name']=f
+
     QSOs = QSOs + qsos1
     
 print("\nThere are ",len(QSOs)," input QSOs ...")
@@ -74,6 +77,13 @@ for qso in QSOs:
         print('\n Keys=',set(keys))
         print(' ')
         sys.exit(0)
+
+    # Flag "TEST" qsos
+    if qso['call'].upper()=='TEST':
+        print('\nNeed to purge TEST qso from',qso['file_name'])
+        print(qso)
+        sys,exit(0)
+    
     
     # Get qso date
     if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
@@ -171,6 +181,31 @@ else:
     P.contest_name=''
     write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False)
 
+# Show a list of QSOs for a specified call
+if P.CALL!=None:
+    print('\nCall\tMode\tDate\t\tUTC\tBand\tRST Out\tRST In')
+    for qso in QSOs_out2:
+        if 'rst_rcvd' in qso:
+            rst_in=qso['rst_rcvd']
+        else:
+            rst_in='?'
+        if 'rst_sent' in qso:
+            rst_out=qso['rst_sent']
+        else:
+            rst_out='?'
+        d=qso['qso_date_off']
+        date=d[4:6]+'-'+d[6:]+'-'+d[0:4]
+        t=qso['time_off']
+        time=t[0:2]+':'+t[2:4]
+        if 'band' in qso:
+            band=qso['band']
+        else:
+            band='?'
+        fname=qso['file_name']
+        print(qso['call'],'\t',qso['mode'],'\t',
+              date,'\t',time,'\t',
+              band,'\t',rst_out,'\t',rst_in,'\t\t',fname)
+              
 print("\nThat's all folks!")
 
     
