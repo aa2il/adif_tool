@@ -9,3 +9,10 @@
 /sats1.csv
 /sats2.csv
 /save*/*
+/__pycache__/params.cpython-38.pyc
+/cqww.adif
+/cwt.adif
+/junk.csv
+/lotwreport.adi
+/lotwreport_2022.adi
+/vhf.adif
