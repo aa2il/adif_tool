@@ -2,7 +2,7 @@
 ################################################################################
 #
 # Params.py - Rev 1.0
-# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Command line param parser for adif tool.
 #
@@ -44,8 +44,10 @@ class PARAMS:
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-o", help="Output ADIF or CSV file",
                               type=str,default='New.adif')
-        arg_proc.add_argument('-sats', action='store_true',help='Satellite QSOs')
-        arg_proc.add_argument('-all', action='store_true',help='Search All Logs in ~/logs')
+        arg_proc.add_argument('-sats', action='store_true',
+                              help='Satellite QSOs')
+        arg_proc.add_argument('-all', action='store_true',
+                              help='Search All Logs in ~/logs')
         arg_proc.add_argument("-days", help="Last N days",
                               type=int,default=0)
         arg_proc.add_argument("-after", help="Starting Date",
@@ -54,9 +56,12 @@ class PARAMS:
                               type=str,default=None)
         arg_proc.add_argument("-call", help="Call worked",
                               type=str,default=None)
+        arg_proc.add_argument("-comment", help="Include Comments",
+                               action='store_true')
         args = arg_proc.parse_args()
-        
-        self.SATS=args.sats
+
+        self.COMMENT = args.comment
+        self.SATS    = args.sats
         if args.call:
             self.CALL=args.call.upper()
         else:
@@ -94,7 +99,10 @@ class PARAMS:
         ndays=args.days
         if after:
             if len(after.split('/'))==2:
-                after+='/2022'
+                now = datetime.datetime.utcnow()
+                year = now.strftime('%Y').upper()
+                print('Year=',year)
+                after+='/'+year
             self.date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
 
         elif ndays>0:

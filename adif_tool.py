@@ -2,7 +2,7 @@
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021-2 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Program to manipulate adif files.
 #
@@ -23,13 +23,13 @@
 import sys
 import os
 import datetime
-import argparse
+#import argparse
 import numpy as np
 from params import *
-from fileio import parse_file_name,parse_adif,write_adif_log
+from fileio import *
 from pprint import pprint
 
-#######################################################################################
+############################################################################################
 
 # Start of main
 print('\n****************************************************************************')
@@ -127,12 +127,17 @@ for qso in QSOs:
         if qso['call'].upper()!=P.CALL:
             save_qso=False
 
+    # Do we want all qso's with comments?
+    if P.COMMENT and 'comment' in qso:
+        save_qso = True 
+
     # If we passed all the criteria, add this qso to our list
     if save_qso:
         QSOs_out.append(qso)
         #print(qso)
 
 print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
+#sys.exit(0)
         
 # Write out new adif or csv file
 #KEYS2=sort_keys(KEYS)
