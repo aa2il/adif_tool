@@ -23,7 +23,6 @@
 import sys
 import os
 import datetime
-#import argparse
 import numpy as np
 from params import *
 from fileio import *

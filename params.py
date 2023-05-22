@@ -21,6 +21,7 @@
 ################################################################################
 
 import os
+import sys
 import argparse
 import datetime
 import glob 
@@ -30,7 +31,7 @@ from operator import itemgetter
 ################################################################################
 
 # User params
-DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+#DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
 
 #######################################################################################
 
@@ -73,25 +74,32 @@ class PARAMS:
         #print(self.SETTINGS)
 
         # Form list of file names
+        DIR_NAME = ""
         fname = args.i
+        #print(fname)
         if args.all:
             fname=['*.adi','*.adif','fflog/*.adi*']
         if fname==None:
 
             # Use usual defaults if nothing speficied
+            DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','sats.adif']:  # ,'wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi']:
+            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','sats.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
                 fname.append(fn)
 
         # Expand wildcards if necessary        
+        #print(fname,type(fname),DIR_NAME)
         if type(fname) == list:   
             self.input_files  = []
             for fn in fname:
+                #print(fn)
                 for fn2 in glob.glob(DIR_NAME+fn):
                     self.input_files.append(fn2)
         else:
             self.input_files  = [fname]
+        #print(self.input_files)
+        #sys.exit(0)
 
         self.output_file = args.o
 
