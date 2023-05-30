@@ -47,6 +47,8 @@ class PARAMS:
                               type=str,default='New.adif')
         arg_proc.add_argument('-sats', action='store_true',
                               help='Satellite QSOs')
+        arg_proc.add_argument('-prune', action='store_true',
+                              help='Prune Fields')
         arg_proc.add_argument('-all', action='store_true',
                               help='Search All Logs in ~/logs')
         arg_proc.add_argument("-days", help="Last N days",
@@ -56,6 +58,8 @@ class PARAMS:
         arg_proc.add_argument("-before", help="Ending Date",
                               type=str,default=None)
         arg_proc.add_argument("-call", help="Call worked",
+                              type=str,default=None)
+        arg_proc.add_argument("-contest", help="Contest ID",
                               type=str,default=None)
         arg_proc.add_argument("-comment", help="Include Comments",
                                action='store_true')
@@ -127,3 +131,12 @@ class PARAMS:
         else:
             before='12/31/2299'
         self.date1 = datetime.datetime.strptime( before, "%m/%d/%Y")  # End date
+
+        if args.contest:
+            self.CONTEST_ID=args.contest.upper()
+        else:
+            self.CONTEST_ID=None
+            
+        self.PRUNE=args.prune
+        
+        

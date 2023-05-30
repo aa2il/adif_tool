@@ -67,7 +67,8 @@ for qso in QSOs:
     for key in qso.keys():
         if key not in KEYS:
             #print('Adding key',key)
-            KEYS.append(key)
+            if not P.PRUNE or key not in ['band_rx','freq_rx','my_city']:
+                KEYS.append(key)
 
     if False:
         print(qso)
@@ -124,6 +125,15 @@ for qso in QSOs:
     # Are we looking for a specific call?
     if P.CALL!=None:
         if qso['call'].upper()!=P.CALL:
+            save_qso=False
+
+    # Are we looking for a specific contest?
+    if P.CONTEST_ID!=None:
+        if 'contest_id' in qso:
+            contest_id=qso['contest_id'].upper()
+            if contest_id!=P.CONTEST_ID:
+                save_qso=False
+        else:
             save_qso=False
 
     # Do we want all qso's with comments?
@@ -187,7 +197,7 @@ else:
 
 # Show a list of QSOs for a specified call
 if P.CALL!=None:
-    print('\nCall\tMode\tDate\t\tUTC\tBand\tRST Out\tRST In')
+    print('\nCall\tMode\t   Date\t\t  UTC\tBand\tRST Out\tRST In\t Contest Id\t\t Log File')
     for qso in QSOs_out2:
         if 'rst_rcvd' in qso:
             rst_in=qso['rst_rcvd']
@@ -197,6 +207,10 @@ if P.CALL!=None:
             rst_out=qso['rst_sent']
         else:
             rst_out='?'
+        if 'contest_id' in qso:
+            contest_id=qso['contest_id']
+        else:
+            contest_id=''
         d=qso['qso_date_off']
         date=d[4:6]+'-'+d[6:]+'-'+d[0:4]
         t=qso['time_off']
@@ -208,7 +222,8 @@ if P.CALL!=None:
         fname=qso['file_name']
         print(qso['call'],'\t',qso['mode'],'\t',
               date,'\t',time,'\t',
-              band,'\t',rst_out,'\t',rst_in,'\t\t',fname)
+              band,'\t ',rst_out,'\t',rst_in,'\t',contest_id,
+              '\t\t',fname)
               
 print("\nThat's all folks!")
 
