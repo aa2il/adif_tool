@@ -82,7 +82,7 @@ Command line program to manipulate ADIF files.  Basically, some of my adif log f
    - python adif_tool.py
 
 8) Known issues using this (as of July 2023):
-   - Fonts look awful - probably need to install these also
+   - None
 
 # Installation for Windoz:
 

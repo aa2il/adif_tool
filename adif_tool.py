@@ -102,6 +102,14 @@ for qso in QSOs:
     else:
         save_qso=False
 
+    # Is there a question about the call sign
+    if '?' in qso['call'] and True:
+        print('Skipping QSO with questionable call', qso['call'])
+        save_qso=False
+        if True:
+            print('YOU NEED TO FIX THIS!!!')
+            sys.exit(0)
+
     # Are we looking for satellite qsos?
     if P.SATS:
         if 'sat_name' in qso:
