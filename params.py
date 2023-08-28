@@ -89,7 +89,9 @@ class PARAMS:
             DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','sats.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
+            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjt_contest_log.adif',
+                       'sats.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
+                #print(fn)
                 fname.append(fn)
 
         # Expand wildcards if necessary        
@@ -97,13 +99,14 @@ class PARAMS:
         if type(fname) == list:   
             self.input_files  = []
             for fn in fname:
-                #print(fn)
+                print(fn)
                 for fn2 in glob.glob(DIR_NAME+fn):
                     self.input_files.append(fn2)
         else:
             self.input_files  = [fname]
-        #print(self.input_files)
-        #sys.exit(0)
+        if False:
+            print(self.input_files)
+            sys.exit(0)
 
         self.output_file = args.o
 
