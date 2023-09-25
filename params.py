@@ -49,6 +49,8 @@ class PARAMS:
                               help='Satellite QSOs')
         arg_proc.add_argument('-prune', action='store_true',
                               help='Prune Fields')
+        arg_proc.add_argument('-big_prune', action='store_true',
+                              help='Prune Fields Even Harder')
         arg_proc.add_argument('-all', action='store_true',
                               help='Search All Logs in ~/logs')
         arg_proc.add_argument("-days", help="Last N days",
@@ -130,7 +132,10 @@ class PARAMS:
         before=args.before
         if before:
             if len(before.split('/'))==2:
-                before+='/2022'
+                now = datetime.datetime.utcnow()
+                year = now.strftime('%Y').upper()
+                print('Year=',year)
+                before+='/'+year
         else:
             before='12/31/2299'
         self.date1 = datetime.datetime.strptime( before, "%m/%d/%Y")  # End date
@@ -141,5 +146,6 @@ class PARAMS:
             self.CONTEST_ID=None
             
         self.PRUNE=args.prune
+        self.BIG_PRUNE=args.big_prune
         
         
