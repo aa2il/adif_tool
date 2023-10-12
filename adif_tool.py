@@ -47,9 +47,23 @@ for f in P.input_files:
     print('Input file:',fname)
 
     p,n,ext=parse_file_name(fname)
+    #print(p,n,ext)
+
     if ext=='.csv':
         print('Reading CSV file ...')
         qsos1,hdr=read_csv_file(fname)
+        print('hdr=',hdr)
+
+        # Check freq - must be MHz
+        #print(qsos1[0])
+        for i in range(len(qsos1)):
+            frq=float( qsos1[i]['freq'] )
+            if frq>=1400.:               # The highest band I can op is 23cm
+                frq *= 1e-3              # Assume KHz and convert to MHz
+                qsos1[i]['freq'] = str(frq)
+        #print(qsos1[0])
+        #sys.exit(0)
+        
     else:
         qsos1 = parse_adif(fname)
 
@@ -60,10 +74,21 @@ for f in P.input_files:
     
 print("\nThere are ",len(QSOs)," input QSOs ...")
 
+# Open script file for questionable lines
+if P.NOTES:
+    fname77='snippets.txt'
+    fp = open(fname77,"w")
+    fp.write('%s\n' % ('#/bin/tcsh -f') )
+    fp.write('%s\n' % (' ') )
+    fp.write('%s\n' % ('set fname=') )
+    fp.write('%s\n' % (' ') )
+
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
 KEYS=[]
 for qso in QSOs:
+
+    noted=False
     for key in qso.keys():
         if key not in KEYS:
             #print('Adding key',key)
@@ -78,6 +103,17 @@ for qso in QSOs:
             else:
                 KEYS.append(key)
 
+        # Is there a question about any field?
+        if '?' in qso[key] and P.NOTES and not noted:
+            noted=True
+            print('\nQuestionable field:',key,qso[key],'\n',qso)
+            cmd='split_wave $fname -snip ' + qso['time_off'] + \
+                  ' ; audacity SNIPPIT.wav > & /dev/null'
+            print('\n',cmd,'\n')
+            fp.write('%s\n' % (cmd) )
+            fp.flush()
+            #sys.exit(0)
+
     if False:
         print(qso)
         keys=qso.keys()
@@ -87,15 +123,17 @@ for qso in QSOs:
         sys.exit(0)
 
     # Flag "TEST" qsos
+    #print(qso)
     if qso['call'].upper()=='TEST':
         print('\nNeed to purge TEST qso from',qso['file_name'])
         print(qso)
         sys,exit(0)
-    
-    
+
     # Get qso date
     if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
         date_off = datetime.datetime.strptime( qso['qso_date_off'], "%Y%m%d")
+        if 'qso_date' not in qso:
+            qso['qso_date']=qso['qso_date_off']
     elif 'qso_date' in qso:
         date_off = datetime.datetime.strptime( qso['qso_date'], "%Y%m%d")
     else:
@@ -104,6 +142,10 @@ for qso in QSOs:
         print(keys)
         sys.exit(0)
 
+    # Patch up
+    if 'time_on' not in qso:
+        qso['time_on']=qso['time_off']
+        
     # Is the qso date in our window?
     if date_off>=P.date0 and date_off<=P.date1:
         save_qso=True
@@ -111,7 +153,7 @@ for qso in QSOs:
         save_qso=False
 
     # Is there a question about the call sign
-    if '?' in qso['call'] and True:
+    if '?' in qso['call'] and P.STRICT:
         print('Skipping QSO with questionable call', qso['call'])
         save_qso=False
         if True:
@@ -165,7 +207,10 @@ print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
 #sys.exit(0)
         
 # Write out new adif or csv file
-#KEYS2=sort_keys(KEYS)
+#if 'qso_date' not in KEYS:
+#    KEYS.append('qso_date')
+#if 'time_on' not in KEYS:
+#    KEYS.append('time_on')
 KEYS2=KEYS
 print('fname=',P.output_file)
 print('\nKEYS2=',KEYS2)
@@ -241,6 +286,9 @@ if P.CALL!=None:
               band,'\t ',rst_out,'\t',rst_in,'\t',contest_id,
               '\t\t',fname)
               
+if P.NOTES:
+    fp.close()
+
 print("\nThat's all folks!")
 
     

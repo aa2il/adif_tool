@@ -47,6 +47,10 @@ class PARAMS:
                               type=str,default='New.adif')
         arg_proc.add_argument('-sats', action='store_true',
                               help='Satellite QSOs')
+        arg_proc.add_argument('-strict', action='store_true',
+                              help='Strict Rules for Calls')
+        arg_proc.add_argument('-notes', action='store_true',
+                              help='Take note of items with question marks')
         arg_proc.add_argument('-prune', action='store_true',
                               help='Prune Fields')
         arg_proc.add_argument('-big_prune', action='store_true',
@@ -69,6 +73,8 @@ class PARAMS:
 
         self.COMMENT = args.comment
         self.SATS    = args.sats
+        self.STRICT  = args.strict
+        self.NOTES  = args.notes
         if args.call:
             self.CALL=args.call.upper()
         else:
