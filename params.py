@@ -49,6 +49,8 @@ class PARAMS:
                               help='Satellite QSOs')
         arg_proc.add_argument('-strict', action='store_true',
                               help='Strict Rules for Calls')
+        arg_proc.add_argument('-aca', action='store_true',
+                              help='Compare CWops worked vs ACA lists')
         arg_proc.add_argument('-notes', action='store_true',
                               help='Take note of items with question marks')
         arg_proc.add_argument('-prune', action='store_true',
@@ -74,7 +76,8 @@ class PARAMS:
         self.COMMENT = args.comment
         self.SATS    = args.sats
         self.STRICT  = args.strict
-        self.NOTES  = args.notes
+        self.NOTES   = args.notes
+        self.ACA     = args.aca
         if args.call:
             self.CALL=args.call.upper()
         else:
@@ -119,6 +122,8 @@ class PARAMS:
         self.output_file = args.o
 
         after=args.after
+        if not after and self.ACA:
+            after='1/1'
         ndays=args.days
         if after:
             if len(after.split('/'))==2:

@@ -27,6 +27,8 @@ import numpy as np
 from params import *
 from fileio import *
 from pprint import pprint
+from dx.spot_processing import ChallengeData
+from load_history import load_history
 
 ############################################################################################
 
@@ -83,6 +85,35 @@ if P.NOTES:
     fp.write('%s\n' % ('set fname=') )
     fp.write('%s\n' % (' ') )
 
+# Read CWops lists
+if P.ACA:
+    naca=0
+    maybe=[]
+
+    # Member list
+    fname88 = os.path.expanduser('~/Python/history/data/Shareable CWops data.xlsx')
+    HIST,fname2 = load_history(fname88)
+    cwops_members=list( set( HIST.keys() ) )
+
+    #book  = xlrd.open_workbook(fname,formatting_info=True)
+    #sheet = book.sheet_by_name('Roster')
+    #nrows = sheet.nrows
+    
+    print('No. CW Ops Members:',len(cwops_members))
+    #print(cwops_members)
+
+    # List worked for ACA credit
+    CHALLENGE_FNAME = os.path.expanduser('~/AA2IL/states.xls')
+    P.data = ChallengeData(CHALLENGE_FNAME)
+    aca  = list(set(P.data.cwops_worked))
+    nums = list(set(P.data.cwops_nums))
+    print('\nNo. CWops members worked for ACA:',len(aca),len(nums))
+
+    #sys.exit(0)
+
+#else:
+#    cwops_member=[]
+
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
 KEYS=[]
@@ -107,13 +138,15 @@ for qso in QSOs:
         if '?' in qso[key] and P.NOTES and not noted:
             noted=True
             print('\nQuestionable field:',key,qso[key],'\n',qso)
+            """
             cmd='split_wave $fname -snip ' + qso['time_off'] + \
                   ' ; audacity SNIPPIT.wav > & /dev/null'
             print('\n',cmd,'\n')
             fp.write('%s\n' % (cmd) )
             fp.flush()
             #sys.exit(0)
-
+            """
+            
     if False:
         print(qso)
         keys=qso.keys()
@@ -196,12 +229,38 @@ for qso in QSOs:
 
     # Do we want all qso's with comments?
     if P.COMMENT and 'comment' in qso:
-        save_qso = True 
+        save_qso = True
+
+    # Are we looking for potentially over-looked ACA contacts
+    if P.ACA and save_qso:
+        call = qso['call'].upper()
+        mode = qso['mode'].upper()
+        try:
+            num = float( HIST[call]['cwops'] )
+        except:
+            num = -1
+        try:
+            status = HIST[call]['status']
+        except:
+            status = 'n/a'
+        if (mode=='CW') and (call in cwops_members) and \
+           (call not in aca) and (num not in nums):
+            naca+=1
+            print('ACA:',naca,' \t',call,'  \t',int(num),'\t',status)
+            maybe.append(call)
+        else:
+            save_qso = False        
 
     # If we passed all the criteria, add this qso to our list
     if save_qso:
         QSOs_out.append(qso)
         #print(qso)
+        if noted:
+            cmd='split_wave $fname -snip ' + qso['time_off'] + \
+                  ' ; audacity SNIPPIT.wav > & /dev/null'
+            print('\n',cmd,'\n')
+            fp.write('%s\n' % (cmd) )
+            fp.flush()
 
 print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
 #sys.exit(0)
@@ -289,6 +348,14 @@ if P.CALL!=None:
 if P.NOTES:
     fp.close()
 
+if P.ACA:
+    maybe=list(set(maybe))
+    print('\nPotential ACA oversights:',len(maybe))
+    for call in maybe:
+        num = float( HIST[call]['cwops'] )
+        status = HIST[call]['status']
+        print(call,'\t',int(num),'\t',status)
+    
 print("\nThat's all folks!")
 
     
