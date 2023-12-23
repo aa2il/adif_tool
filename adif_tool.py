@@ -108,6 +108,7 @@ if P.ACA:
     aca  = list(set(P.data.cwops_worked))
     nums = list(set(P.data.cwops_nums))
     print('\nNo. CWops members worked for ACA:',len(aca),len(nums))
+    print('\n    No.\t Call\t\tMem Num\tStatus')
 
     #sys.exit(0)
 
@@ -352,8 +353,11 @@ if P.ACA:
     maybe=list(set(maybe))
     print('\nPotential ACA oversights:',len(maybe))
     for call in maybe:
-        num = float( HIST[call]['cwops'] )
-        status = HIST[call]['status']
+        num = int( HIST[call]['cwops'] )
+        try:
+            status = HIST[call]['status']
+        except:
+            print('Unknown status for call=',call,',\tnum=',num)
         print(call,'\t',int(num),'\t',status)
     
 print("\nThat's all folks!")
