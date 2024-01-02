@@ -41,7 +41,7 @@ class PARAMS:
 
         # Process command line args
         arg_proc = argparse.ArgumentParser()
-        arg_proc.add_argument("-i", help="Input ADIF or CSV file",
+        arg_proc.add_argument("-i", help="Input ADIF or CSV file(s)",
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-o", help="Output ADIF or CSV file",
                               type=str,default='New.adif')
@@ -65,10 +65,12 @@ class PARAMS:
                               type=str,default=None)
         arg_proc.add_argument("-before", help="Ending Date",
                               type=str,default=None)
-        arg_proc.add_argument("-call", help="Call worked",
-                              type=str,default=None)
+        arg_proc.add_argument("-call", help="Call(s) worked",
+                              type=str,default=None,nargs='*')
         arg_proc.add_argument("-contest", help="Contest ID",
                               type=str,default=None)
+        arg_proc.add_argument("-quiet", help="Quiet Mode",
+                               action='store_true')
         arg_proc.add_argument("-comment", help="Include Comments",
                                action='store_true')
         args = arg_proc.parse_args()
@@ -78,10 +80,15 @@ class PARAMS:
         self.STRICT  = args.strict
         self.NOTES   = args.notes
         self.ACA     = args.aca
-        if args.call:
-            self.CALL=args.call.upper()
+        self.QUIET     = args.quiet
+        
+        calls=args.call
+        if calls:
+            self.CALLS=[]
+            for call in calls:
+                self.CALLS.append(call.upper())
         else:
-            self.CALL=None
+            self.CALLS=None
 
         # Read config file
         S=CONFIG_PARAMS('.keyerrc')
@@ -101,7 +108,7 @@ class PARAMS:
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
             for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjt_contest_log.adif',
-                       'sats.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
+                       'sats.adif','sprint.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
                 #print(fn)
                 fname.append(fn)
 
@@ -110,7 +117,8 @@ class PARAMS:
         if type(fname) == list:   
             self.input_files  = []
             for fn in fname:
-                print(fn)
+                if not self.QUIET:
+                    print(fn)
                 for fn2 in glob.glob(DIR_NAME+fn):
                     self.input_files.append(fn2)
         else:
@@ -129,8 +137,9 @@ class PARAMS:
             if len(after.split('/'))==2:
                 now = datetime.datetime.utcnow()
                 year = now.strftime('%Y').upper()
+                year = 2023
                 print('Year=',year)
-                after+='/'+year
+                after+='/'+str(year)
             self.date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
 
         elif ndays>0:

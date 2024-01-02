@@ -36,8 +36,9 @@ from load_history import load_history
 print('\n****************************************************************************')
 print('\nADIF Tool beginning ...\n')
 P=PARAMS()
-print("P=")
-pprint(vars(P))
+if not P.QUIET:
+    print("P=")
+    pprint(vars(P))
 
 # Init
 istart  = -1
@@ -46,7 +47,8 @@ istart  = -1
 QSOs=[]
 for f in P.input_files:
     fname=os.path.expanduser( f )
-    print('Input file:',fname)
+    if not P.QUIET:
+        print('Input file:',fname)
 
     p,n,ext=parse_file_name(fname)
     #print(p,n,ext)
@@ -74,7 +76,8 @@ for f in P.input_files:
 
     QSOs = QSOs + qsos1
     
-print("\nThere are ",len(QSOs)," input QSOs ...")
+if not P.QUIET:
+    print("\nThere are ",len(QSOs)," input QSOs ...")
 
 # Open script file for questionable lines
 if P.NOTES:
@@ -214,9 +217,9 @@ for qso in QSOs:
         else:
             save_qso=False
 
-    # Are we looking for a specific call?
-    if P.CALL!=None:
-        if qso['call'].upper()!=P.CALL:
+    # Are we looking for a specific call(s)?
+    if P.CALLS!=None:
+        if qso['call'].upper() not in P.CALLS:
             save_qso=False
 
     # Are we looking for a specific contest?
@@ -263,8 +266,9 @@ for qso in QSOs:
             fp.write('%s\n' % (cmd) )
             fp.flush()
 
-print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
-#sys.exit(0)
+if not P.QUIET:
+    print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
+    #sys.exit(0)
         
 # Write out new adif or csv file
 #if 'qso_date' not in KEYS:
@@ -272,8 +276,9 @@ print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
 #if 'time_on' not in KEYS:
 #    KEYS.append('time_on')
 KEYS2=KEYS
-print('fname=',P.output_file)
-print('\nKEYS2=',KEYS2)
+if not P.QUIET:
+    print('fname=',P.output_file)
+    #print('\nKEYS2=',KEYS2)
 
 # Sort list of Q's by date & time
 QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
@@ -309,15 +314,17 @@ for i in range(len(QSOs_out2)):
 # Finally write out list of Q's
 p,n,ext=parse_file_name(P.output_file)
 if ext=='.csv':
-    print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
+    if not P.QUIET:
+        print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
     write_csv_file(P.output_file,KEYS2,QSOs_out3)
 else:
-    print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
+    if not P.QUIET:
+        print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
     P.contest_name=''
     write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False)
 
-# Show a list of QSOs for a specified call
-if P.CALL!=None:
+# Show a list of QSOs for specified call(s)
+if P.CALLS:
     print('\nCall\tMode\t   Date\t\t  UTC\tBand\tRST Out\tRST In\t Contest Id\t\t Log File')
     for qso in QSOs_out2:
         if 'rst_rcvd' in qso:
