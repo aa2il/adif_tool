@@ -137,7 +137,7 @@ class PARAMS:
             if len(after.split('/'))==2:
                 now = datetime.datetime.utcnow()
                 year = now.strftime('%Y').upper()
-                year = 2023
+                #year = 2023
                 print('Year=',year)
                 after+='/'+str(year)
             self.date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date

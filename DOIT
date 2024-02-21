@@ -1,0 +1,19 @@
+# Hmmm - let's see if any of the ARRL officers are active?
+# Not much to see here - nothing in 2023!
+
+set OPTS="-quiet"
+#set OPTS="-quiet -after 1/1/2023"
+
+adif_tool $OPTS -call K5UR K1TWF W6ROD NA2AA W2DLM
+
+#exit
+
+# How about the BoD?
+
+adif_tool $OPTS -call K3RF KB3MXM K9LA N9BA W0ND WB4RHQ WA8EFK N8SY NP4H
+
+adif_tool $OPTS -call K0AIZ K2DP AB1OC K9HI W7VO KB7HDX K6WX W7XM N2ZZ N2COP
+
+adif_tool $OPTS -call K0RM N2SRK N4MB WA4AW AA7A N5AUS W5LHC
+
+adif_tool $OPTS -call N6AA AC0W K5UZ WJ7S W6RGG

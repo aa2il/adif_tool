@@ -2,7 +2,7 @@
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021-3 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Program to manipulate adif files.
 #
@@ -27,7 +27,7 @@ import numpy as np
 from params import *
 from fileio import *
 from pprint import pprint
-from dx.spot_processing import ChallengeData
+from dx import ChallengeData
 from load_history import load_history
 
 ############################################################################################
