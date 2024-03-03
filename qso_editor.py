@@ -25,6 +25,7 @@ import os
 if sys.version_info[0]==3:
     from tkinter import *
     import tkinter.font
+    import tkinter.messagebox
 else:
     from Tkinter import *
     import tkFont
@@ -41,10 +42,15 @@ class QSO_EDITOR():
         # Inits
         self.P = P
         self.nqsos=0
-        self.KEYS=['call','band','mode','qso_date','time_off']
-        self.nkeys=0
+        self.DISPLAY_FIELDS=['Date','Time','Call','Band','Mode',
+                             'Name','QTH','SRX']
+        self.FIELDS=['call','band','mode','qso_date','time_off',
+                             'name','qth','srx']
+        self.nfields=0
         self.QSOs=[]
-
+        self.Dirty=False
+        self.fmt=" %8s %8s  %-10.10s  %-4.4s %-4.4s %-8.8s %-8.8s %+5.5s"
+ 
         # Open main or pop-up window depending on if "root" is given
         if root:
             self.win=Toplevel(root)
@@ -52,7 +58,7 @@ class QSO_EDITOR():
         else:
             self.win = Tk()
         self.win.title("QSO Editor by AA2IL")
-        self.win.geometry('1700x240+100+10')
+        self.win.geometry('1700x500+100+10')
         self.root=self.win
 
         # Create spash screen
@@ -81,22 +87,15 @@ class QSO_EDITOR():
         # Add menu bar
         #self.create_menu_bar()
 
-        # Entry boxes for editing
-        self.row=0
-        self.col=0
+        # Frame for entry boxes
         self.Frame1 = Frame(self.root)
         self.Frame1.pack(fill=BOTH)
-        self.boxes={}
-        for key in self.KEYS:
-            label = Label(self.Frame1,text=' '+key+':',font=self.font)
-            label.grid(row=self.row,column=self.col,columnspan=1)
-            box    = Entry(self.Frame1,font=self.font,selectbackground='lightgreen')
-            box.grid(row=self.row,column=self.col+1,columnspan=1)
-            self.boxes[key]=box
-            self.col+=2
-            if self.col>10:
-                self.row+=1
-                self.col=0
+
+        label = Label(self.root,
+                      font=self.font,
+                      anchor="w",justify=LEFT,
+                      text=self.fmt % tuple(self.DISPLAY_FIELDS) )
+        label.pack(fill=BOTH)
         
         # List box with a scrool bar
         self.Frame2 = Frame(self.root)
@@ -127,61 +126,145 @@ class QSO_EDITOR():
         # Make what we have so far visible
         self.root.update_idletasks()
         self.root.update()
+
         
+    # Routine to create entry boxes for editing ADIF fields
+    def make_entry_boxes(self):
+
+        self.row=0
+        self.col=0
+        self.boxes={}
+        for field in self.FIELDS:
+            label = Label(self.Frame1,text=' '+field+':',font=self.font)
+            label.grid(row=self.row,column=self.col,columnspan=1)
+            box    = Entry( self.Frame1,
+                            font=self.font,
+                            selectbackground='lightgreen',
+                            validate='key',            # all?
+                            validatecommand=(self.root.register(self.QSO_Changed), '%W','%P') )
+            box.grid(row=self.row,column=self.col+1,columnspan=1)
+            self.boxes[field]=box
+            self.col+=2
+            if self.col>10:
+                self.row+=1
+                self.col=0
+
+
+    # Callback to note if any box has changes
+    def QSO_Changed(self,widget,txt):
+        #idx=list(map(int, widget.replace('.!Cell','').split('_') ))
+        print(widget,'\t')
+        
+        self.Dirty=True
+        return True
+                
+        
+    # Routine to add a single qso to the scroll box
+    def insert_qso(self,qso,idx):
+
+        try:
+            call     = qso['call']
+            date     = qso['qso_date']
+            time_off = qso['time_off']
+            band     = qso['band']
+            mode     = qso['mode']
+            if 'name' in qso:
+                name  = qso['name']
+            else:
+                name=''
+            if 'qth' in qso:
+                qth  = qso['qth']
+            else:
+                qth=''
+            if 'srx' in qso:
+                srx  = qso['srx']
+            else:
+                srx=''
+        except:
+            print('INSERT QSO ERROR')
+            print(qso)
+            sys.exit(0)
+            
+        self.lb.insert(idx,self.fmt % (date,time_off,call,band,mode,name,qth,srx))
+            
+        if idx==END:
+            idx=self.nqsos-1
+        if idx % 2:
+            c='bisque'
+        else:
+            c='lemon chiffon'
+        self.lb.itemconfigure(idx, background=c)
+
         
     # Routine to add qsos to the scroll box
     def add_qsos(self,qsos):
 
         for qso in qsos:
             
-            for key in qso.keys():
-                if key not in self.KEYS:
-                    self.KEYS.append(key)
+            for field in qso.keys():
+                if field not in self.FIELDS:
+                    self.FIELDS.append(field)
         
-            try:
-                call     = qso['call']
-                date     = qso['qso_date']
-                time_off = qso['time_off']
-                band     = qso['band']
-                mode     = qso['mode']
-            except:
-                print(qso)
-                sys.exit(0)
-            
             self.nqsos+=1
             self.QSOs.append(qso)
+            self.insert_qso(qso,END)
             
-            self.lb.insert(END, " %8s %8s  %-10.10s  %4s %4s" % \
-                           (date,time_off,call,band,mode))
-            if self.nqsos % 2:
-                c='bisque'
-            else:
-                c='lemon chiffon'
-            self.lb.itemconfigure(END, background=c)
+        print('FIELDS=',self.FIELDS)
 
-            # Make latest (last) qso visible
-            sb=self.scrollbar.get()
-            self.lb.yview_moveto(sb[1])
+        # Make sure we have all an entry box for each field
+        self.make_entry_boxes()
+
+        # Make latest (last) qso visible
+        sb=self.scrollbar.get()
+        print('sb=',sb)
+        self.root.update_idletasks()
+        self.lb.yview_moveto(sb[1])
+
         
-        print('KEYS=',self.KEYS)
-
     # Handler for when an entry is selected
     def LBLeftClick(self,event):
         print('LBLeftClick ...')
+
+        # Check if we need to save any changes
+        if self.Dirty:
+            msg='Save changes?'
+            lab="QSO Editor"
+            if sys.version_info[0]==3:
+                result=tkinter.messagebox.askyesno(lab,msg)
+            else:
+                result=tkMessageBox.askyesno(lab,msg)
+                
+            if result:
+                
+                qso=self.QSOs[self.qso_index]
+                for field in self.FIELDS:
+                    val=self.boxes[field].get()            # .upper()
+                    if len(val)>0 or field in qso:
+                        qso[field]=val
+                self.QSOs[self.qso_index]=qso
+
+                self.lb.delete(self.qso_index,self.qso_index)
+                self.insert_qso(qso,self.qso_index)
+                
+            else:
+                print('Changes Discarded.')
+
         w=event.widget
         if len( w.curselection() ) > 0:
-            index = int(w.curselection()[0])
-            value = w.get(index)
-            print('You selected item %d: "%s"' % (index, value))
+            self.qso_index = int(w.curselection()[0])
+            value = w.get(self.qso_index)
+            print('You selected item %d: "%s"' % (self.qso_index, value))
 
-            qso=self.QSOs[index]
+            qso=self.QSOs[self.qso_index]
             print('qso=',qso)
 
-            for key in self.boxes.keys():
-                box=self.boxes[key]
+            for field in self.boxes.keys():
+                box=self.boxes[field]
                 box.delete(0,END)
-                box.insert(0,qso[key])
+                if field in qso:
+                    box.insert(0,qso[field])
                 
+        self.Dirty=False
         
 ################################################################################
 
