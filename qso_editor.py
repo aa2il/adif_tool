@@ -31,6 +31,7 @@ else:
     import tkFont
 import time
 import platform
+import argparse
 from widgets_tk import StatusBar,SPLASH_SCREEN
 
 ################################################################################
@@ -97,7 +98,7 @@ class QSO_EDITOR():
                       text=self.fmt % tuple(self.DISPLAY_FIELDS) )
         label.pack(fill=BOTH)
         
-        # List box with a scrool bar
+        # List box with a scroll bar
         self.Frame2 = Frame(self.root)
         self.Frame2.pack(fill=BOTH,expand=1)
         self.scrollbar = Scrollbar(self.Frame2, orient=VERTICAL)
@@ -153,7 +154,7 @@ class QSO_EDITOR():
     # Callback to note if any box has changes
     def QSO_Changed(self,widget,txt):
         #idx=list(map(int, widget.replace('.!Cell','').split('_') ))
-        print(widget,'\t')
+        #gprint(widget,'\t')
         
         self.Dirty=True
         return True
@@ -273,7 +274,7 @@ class QSO_EDITOR():
 if __name__ == '__main__':
 
     from settings import read_settings
-    from fileio import parse_adif
+    from fileio import parse_adif,write_adif_log
     
     print('Howdy Ho!')
     
@@ -287,6 +288,27 @@ if __name__ == '__main__':
             # Read config file
             self.SETTINGS,RCFILE = read_settings('.keyerrc')
 
+            # Process command line args
+            arg_proc = argparse.ArgumentParser()
+            arg_proc.add_argument('Fname', metavar='Fname',
+                                  type=str, default=None,
+                                  help='ADIF Input File Name')
+            args = arg_proc.parse_args()
+            
+            if args.Fname==None:
+                DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+                MY_CALL=P.SETTINGS['MY_CALL']
+                self.fname=DIR_NAME+MY_CALL+'.adif'
+                #fname=MY_CALL+'.adif'
+            else:
+                DIR_NAME = os.path.expanduser('')
+                self.fname=DIR_NAME+args.Fname
+
+            if False:
+                print('Input file:',self.fname)
+                sys.exit(0)
+            
+
             
     # Set basic run-time params
     P=EDITOR_PARAMS()
@@ -295,12 +317,8 @@ if __name__ == '__main__':
     P.Editor = QSO_EDITOR(None,P)
     
     # Read ADIF log
-    DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
-    MY_CALL=P.SETTINGS['MY_CALL']
-    #fname=DIR_NAME+MY_CALL+'.adif'
-    fname=MY_CALL+'.adif'
-    print('Input file:',fname)
-    qsos = parse_adif(fname)
+    print('Input file:',P.fname)
+    qsos = parse_adif(P.fname)
     print("\nThere are ",len(qsos)," input QSOs ...")
     print('Last qso=',qsos[-1])
 
@@ -310,6 +328,10 @@ if __name__ == '__main__':
     # And away we go!
     #P.Editor.status_bar.setText("Let's Rock!")
     mainloop()
+
+    # Save adif file
+    fname2=P.fname+'2'
+    write_adif_log(qsos,fname2,P,SORT_KEYS=False)
 
     print("Y'all come on back now ya hear!")
 
