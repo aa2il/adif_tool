@@ -71,7 +71,7 @@ class PARAMS:
                               type=str,default=None)
         arg_proc.add_argument("-quiet", help="Quiet Mode",
                                action='store_true')
-        arg_proc.add_argument("-comment", help="Include Comments",
+        arg_proc.add_argument("-comments", help="Include all QSOs with Comments",
                                action='store_true')
         args = arg_proc.parse_args()
 
