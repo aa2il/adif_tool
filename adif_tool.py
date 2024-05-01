@@ -98,10 +98,6 @@ if P.ACA:
     HIST,fname2 = load_history(fname88)
     cwops_members=list( set( HIST.keys() ) )
 
-    #book  = xlrd.open_workbook(fname,formatting_info=True)
-    #sheet = book.sheet_by_name('Roster')
-    #nrows = sheet.nrows
-    
     print('No. CW Ops Members:',len(cwops_members))
     #print(cwops_members)
 
@@ -114,9 +110,6 @@ if P.ACA:
     print('\n    No.\t Call\t\tMem Num\tStatus')
 
     #sys.exit(0)
-
-#else:
-#    cwops_member=[]
 
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
@@ -232,8 +225,17 @@ for qso in QSOs:
             save_qso=False
 
     # Do we want all qso's with comments?
-    if P.COMMENT and 'comment' in qso:
-        save_qso = True
+    cwo=None
+    if 'comment' in qso:
+        comment = qso['comment']
+        if comment[0:4]=='CWO:':
+            cwo=comment[4:]
+            #print('cwo=',cwo)
+            #if ')' in comment:
+            #    print(qso)
+            #    sys.exit(0)
+        if P.COMMENT:
+            save_qso = True
 
     # Are we looking for potentially over-looked ACA contacts
     if P.ACA and save_qso:
@@ -247,11 +249,25 @@ for qso in QSOs:
             status = HIST[call]['status']
         except:
             status = 'n/a'
+        if cwo:
+            try:
+                num2 = float( HIST[cwo]['cwops'] )
+            except:
+                num2 = -1
+            try:
+                status2 = HIST[cwo]['status']
+            except:
+                status2 = 'n/a'
         if (mode=='CW') and (call in cwops_members) and \
            (call not in aca) and (num not in nums):
             naca+=1
             print('ACA:',naca,' \t',call,'  \t',int(num),'\t',status)
             maybe.append(call)
+        elif (mode=='CW') and (cwo in cwops_members) and \
+           (cwo not in aca) and (num2 not in nums):
+            naca+=1
+            print('ACA2:',naca,' \t',cwo,'  \t',int(num),'\t',status)
+            maybe.append(cwo)
         else:
             save_qso = False        
 

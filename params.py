@@ -75,7 +75,7 @@ class PARAMS:
                                action='store_true')
         args = arg_proc.parse_args()
 
-        self.COMMENT = args.comment
+        self.COMMENT = args.comments
         self.SATS    = args.sats
         self.STRICT  = args.strict
         self.NOTES   = args.notes
