@@ -29,6 +29,41 @@ from fileio import *
 from pprint import pprint
 from dx import ChallengeData
 from load_history import load_history
+from counties import *
+
+############################################################################################
+
+def check_id(qso):
+    qth=qso['qth'].split('/')[0]
+    state=qth[:2]
+    id=qso['contest_id'][:2]
+    if len(qth)<5:
+        print('\nCHECK ID: Unable to confirm state - id=',id)
+        print('qso=',qso)
+        print('qth=',qth,'\tstate=',state,'\tid=',id)
+        print('counties=',COUNTIES[id])
+        id2=id
+        if (qth in COUNTIES[id]) or (id+qth in COUNTIES[id]):
+            print('Its Probably OK!')
+        #sys.exit(0)
+    elif (state in W7_STATES) or (state+'7QP' in W7_STATES):
+        #print(W7_STATES)
+        id2='W7'
+    elif state in W1_STATES:
+        #print(W1_STATES)
+        id2='W1'
+    else:
+        id2=state
+
+    qso2=qso
+    if id!=id2:
+        print('\nCHECK ID: Contest ID fixup - ',id,' --> ',id2)
+        print('qso=',qso)
+        print('qth=',qth,'\tstate=',state,'\tid=',id)
+        #sys.exit(0)
+        qso2['contest_id']=id2+qso['contest_id'][2:]
+
+    return qso2
 
 ############################################################################################
 
@@ -135,14 +170,8 @@ for qso in QSOs:
         if '?' in qso[key] and P.NOTES and not noted:
             noted=True
             print('\nQuestionable field:',key,qso[key],'\n',qso)
-            """
-            cmd='split_wave $fname -snip ' + qso['time_off'] + \
-                  ' ; audacity SNIPPIT.wav > & /dev/null'
-            print('\n',cmd,'\n')
-            fp.write('%s\n' % (cmd) )
-            fp.flush()
+            note=qso['call']+' '+key+' '+qso[key]
             #sys.exit(0)
-            """
             
     if False:
         print(qso)
@@ -216,10 +245,10 @@ for qso in QSOs:
             save_qso=False
 
     # Are we looking for a specific contest?
-    if P.CONTEST_ID!=None:
+    if P.CONTEST_IDs!=None:
         if 'contest_id' in qso:
             contest_id=qso['contest_id'].upper()
-            if contest_id!=P.CONTEST_ID:
+            if contest_id not in P.CONTEST_IDs:
                 save_qso=False
         else:
             save_qso=False
@@ -278,9 +307,12 @@ for qso in QSOs:
         if noted:
             cmd='split_wave $fname -snip ' + qso['time_off'] + \
                   ' ; audacity SNIPPIT.wav > & /dev/null'
-            print('\n',cmd,'\n')
+            print('\n#',note)
+            print(cmd,'\n')
+            fp.write('\n# %s\n' % (note) )
             fp.write('%s\n' % (cmd) )
             fp.flush()
+            #sys.exit(0)
 
 if not P.QUIET:
     print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
@@ -322,6 +354,13 @@ for i in range(len(QSOs_out2)):
                 for key in keys2:
                     if key!='unique' and (key not in keys1 or len(qso1[key])==0):
                         qso1[key]=qso2[key]
+
+            # Check State QSO Contest IDs
+            if P.QPs!=None:
+                qso3=check_id(qso1)
+            else:
+                qso3=qso1
+                        
         QSOs_out3.append(qso1)
 
 #print(valid)        

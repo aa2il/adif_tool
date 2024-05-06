@@ -67,8 +67,10 @@ class PARAMS:
                               type=str,default=None)
         arg_proc.add_argument("-call", help="Call(s) worked",
                               type=str,default=None,nargs='*')
+        arg_proc.add_argument("-qps", help="State QPs",
+                              type=str,default=None,nargs='*')
         arg_proc.add_argument("-contest", help="Contest ID",
-                              type=str,default=None)
+                              type=str,default=None,nargs='*')
         arg_proc.add_argument("-quiet", help="Quiet Mode",
                                action='store_true')
         arg_proc.add_argument("-comments", help="Include all QSOs with Comments",
@@ -160,11 +162,14 @@ class PARAMS:
             before='12/31/2299'
         self.date1 = datetime.datetime.strptime( before, "%m/%d/%Y")  # End date
 
-        if args.contest:
-            self.CONTEST_ID=args.contest.upper()
-        else:
-            self.CONTEST_ID=None
-            
+        self.CONTEST_IDs=args.contest
+        self.QPs=args.qps
+        if self.QPs:
+            if self.CONTEST_IDs==None:
+                self.CONTEST_IDs=[]
+            for qp in self.QPs:
+                self.CONTEST_IDs.append(qp+'-QSO-PARTY')
+        
         self.PRUNE=args.prune
         self.BIG_PRUNE=args.big_prune
         
