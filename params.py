@@ -106,16 +106,17 @@ class PARAMS:
         if fname==None:
 
             # Use usual defaults if nothing speficied
-            DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+            #DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+            DIR_NAME = os.path.expanduser( '~/logs/' )
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjt_contest_log.adif',
+            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjtx_log9*.adi','wsjt_contest_log.adif',
                        'sats.adif','sprint.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
-                #print(fn)
+                print('LOG FILE found:',fn)
                 fname.append(fn)
 
         # Expand wildcards if necessary        
-        #print(fname,type(fname),DIR_NAME)
+        print('fname=',fname,'\t',type(fname),'\nDIR_NAME=',DIR_NAME)
         if type(fname) == list:   
             self.input_files  = []
             for fn in fname:
@@ -123,6 +124,8 @@ class PARAMS:
                     print(fn)
                 for fn2 in glob.glob(DIR_NAME+fn):
                     self.input_files.append(fn2)
+                    if not self.QUIET and False:
+                        print(fn2)
         else:
             self.input_files  = [fname]
         if False:

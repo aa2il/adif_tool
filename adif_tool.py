@@ -120,7 +120,7 @@ if P.NOTES:
     fp = open(fname77,"w")
     fp.write('%s\n' % ('#/bin/tcsh -f') )
     fp.write('%s\n' % (' ') )
-    fp.write('%s\n' % ('set fname=') )
+    fp.write('%s\n' % ('set fname="capture_*.wav"') )
     fp.write('%s\n' % (' ') )
 
 # Read CWops lists
