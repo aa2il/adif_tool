@@ -111,7 +111,7 @@ class PARAMS:
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
             for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjtx_log9*.adi','wsjt_contest_log.adif',
-                       'sats.adif','sprint.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
+                       'sats.adif','sprint.adif','*2024*.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
                 print('LOG FILE found:',fn)
                 fname.append(fn)
 
