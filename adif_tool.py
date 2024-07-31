@@ -379,7 +379,7 @@ else:
     write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False)
 
 # Show a list of QSOs for specified call(s)
-if P.CALLS:
+if P.CALLS or P.ACA:
     print('\nCall\tMode\t   Date\t\t  UTC\tBand\tRST Out\tRST In\t Contest Id\t\t Log File')
     for qso in QSOs_out2:
         if 'rst_rcvd' in qso:
@@ -395,7 +395,8 @@ if P.CALLS:
         else:
             contest_id=''
         d=qso['qso_date_off']
-        date=d[4:6]+'-'+d[6:]+'-'+d[0:4]
+        #date=d[4:6]+'-'+d[6:]+'-'+d[0:4]
+        date=d[0:4]+'-'+d[4:6]+'-'+d[6:]
         t=qso['time_off']
         time=t[0:2]+':'+t[2:4]
         if 'band' in qso:
