@@ -35,32 +35,43 @@ from counties import *
 
 def check_id(qso):
     qth=qso['qth'].split('/')[0]
-    state=qth[:2]
     id=qso['contest_id'][:2]
-    if len(qth)<5:
-        print('\nCHECK ID: Unable to confirm state - id=',id)
-        print('qso=',qso)
-        print('qth=',qth,'\tstate=',state,'\tid=',id)
-        print('counties=',COUNTIES[id])
-        id2=id
-        if (qth in COUNTIES[id]) or (id+qth in COUNTIES[id]):
-            print('Its Probably OK!')
-        #sys.exit(0)
-    elif (state in W7_STATES) or (state+'7QP' in W7_STATES):
-        #print(W7_STATES)
-        id2='W7'
-    elif state in W1_STATES:
-        #print(W1_STATES)
-        id2='W1'
+    if id in ['W1','W7']:
+        state=qth[:2]
+        if len(qth)<5:
+            print('\nCHECK ID: Unable to confirm state - id=',id)
+            print('qso=',qso)
+            print('qth=',qth,'\tstate=',state,'\tid=',id)
+            print('counties=',COUNTIES[id])
+            id2=id
+            if (qth in COUNTIES[id]) or (id+qth in COUNTIES[id]):
+                print('Its Probably OK!')
+            #sys.exit(0)
+        elif (state in W7_STATES) or (state+'7QP' in W7_STATES):
+            #print(W7_STATES)
+            id2='W7'
+        elif state in W1_STATES:
+            #print(W1_STATES)
+            id2='W1'
+        else:
+            id2=state
     else:
-        id2=state
+        if qth in COUNTIES[id]:
+            id2=id
+        else:
+            print('\nCHECK ID: Unable to confirm state - id=',id)
+            print('qso=',qso)
+            print('qth=',qth)
+            print('counties=',COUNTIES[id])
+            print('--- Giving up ---')
+            sys.exit(0)
 
     qso2=qso
     if id!=id2:
         print('\nCHECK ID: Contest ID fixup - ',id,' --> ',id2)
         print('qso=',qso)
         print('qth=',qth,'\tstate=',state,'\tid=',id)
-        #sys.exit(0)
+        sys.exit(0)
         qso2['contest_id']=id2+qso['contest_id'][2:]
 
     return qso2
