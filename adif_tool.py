@@ -169,10 +169,10 @@ for qso in QSOs:
             #if not P.PRUNE or key not in ['band_rx','freq_rx','my_city']:
             if P.BIG_PRUNE and key in ['my_gridsquare','rst_rcvd','rst_sent',
                                        'station_callsign','skcc','file_name',
-                                       'sat_name','prop_mode',
+                                       'sat_name','prop_mode','my_rig','running',
                                        'band_rx','freq_rx','my_city']:
                 pass
-            elif P.PRUNE and key in ['band_rx','freq_rx','my_city']:
+            elif P.PRUNE and key in ['band_rx','freq_rx','my_city','my_rig']:
                 pass
             else:
                 KEYS.append(key)
