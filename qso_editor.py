@@ -55,7 +55,7 @@ class QSO_EDITOR():
         # Open main or pop-up window depending on if "root" is given
         if root:
             self.win=Toplevel(root)
-            self.hide()
+            self.Hide()
         else:
             self.win = Tk()
         self.win.title("QSO Editor by AA2IL")
@@ -335,4 +335,106 @@ if __name__ == '__main__':
 
     print("Y'all come on back now ya hear!")
 
+################################################################################
     
+class QSO_INSPECTOR():
+    def __init__(self,qso,root=None):
+
+        # Init
+        print('QSO INSPECTOR: Init ...')
+        self.root=root
+        self.qso=qso
+        self.qso2={}
+        self.Changed=False
+        self.SkipRemaining=False
+        
+        if root:
+            self.win=Toplevel(root)
+            self.Hide()
+            #print('Top-level')
+        else:
+            self.win = Tk()
+            #print('Root')
+        self.win.title("QSO Inspector")
+
+        row=-1
+        self.boxes=[]
+        self.keys=qso.keys()
+        for key in self.keys:
+            row+=1
+            Label(self.win, text=key+':').grid(row=row, column=0)
+            box = Entry(self.win)
+            box.grid(row=row,column=1,sticky=E+W)
+            #box.delete(0, END)  
+            self.boxes.append(box)
+            try:
+                box.insert(0,qso[key])
+            except:
+                pass
+        
+        row+=1
+        col=0
+        button = Button(self.win, text="OK",command=self.Dismiss)
+        button.grid(row=row,column=col,sticky=E+W)
+
+        col+=1
+        button = Button(self.win, text="Snip",command=self.Snip)
+        button.grid(row=row,column=col,sticky=E+W)
+
+        col+=1
+        button = Button(self.win, text="Cancel",command=self.Hide)
+        button.grid(row=row,column=col,sticky=E+W)
+
+        col+=1
+        button = Button(self.win, text="Skip Rest",command=self.SkipRest)
+        button.grid(row=row,column=col,sticky=E+W)
+
+        self.win.protocol("WM_DELETE_WINDOW", self.Hide)        
+        self.Show()
+
+        print('Spinning ...')
+        self.Done=False
+        mainloop()
+        print('... Thats all Folks!')
+
+
+    def Dismiss(self):
+        print('DISMISSED ... ')
+        for key,box in zip(self.keys,self.boxes):
+            val=box.get()
+            self.qso2[key] = val
+            self.Changed |= val != self.qso[key]
+
+        self.Hide()
+        self.Done=True
+
+    def Show(self):
+        print('Showing Window ...')
+        self.win.update()
+        self.win.deiconify()
+        
+    def Hide(self):
+        print('Hide Window ...',self.root)
+        if self.root:
+            self.win.withdraw()
+        else:
+            print('Bye Bye')
+            self.win.destroy()
+            self.win=None
+        self.Done=True
+
+    def Snip(self):
+        print('Snip Snip ...')
+        t=self.qso['time_off']
+        d=self.qso['qso_date_off'][-2:]
+        cmd='~/Python/split_wave/split_wave.py capture_*'+d+'*.wav -snip ' + t + \
+            ' && audacity SNIPPIT.wav > /dev/null 2>&1 &'
+        print('\n',cmd,'\n')
+        os.system(cmd)
+            
+    def SkipRest(self):
+        print('SkipRest ...')
+        self.SkipRemaining=True
+        self.Dismiss()
+        
+        

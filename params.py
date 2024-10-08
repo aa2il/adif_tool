@@ -82,8 +82,9 @@ class PARAMS:
         self.STRICT  = args.strict
         self.NOTES   = args.notes
         self.ACA     = args.aca
-        self.QUIET     = args.quiet
-        
+        self.QUIET   = args.quiet
+        self.RunInspector = True
+
         calls=args.call
         if calls:
             self.CALLS=[]

@@ -30,6 +30,7 @@ from pprint import pprint
 from dx import ChallengeData
 from load_history import load_history
 from counties import *
+from qso_editor import QSO_INSPECTOR
 
 ############################################################################################
 
@@ -115,7 +116,7 @@ for f in P.input_files:
         #sys.exit(0)
         
     else:
-        qsos1 = parse_adif(fname)
+        qsos1 = parse_adif(fname,verbosity=0)
 
     for qso in qsos1:
         qso['file_name']=f
@@ -160,10 +161,20 @@ if P.ACA:
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
 KEYS=[]
+nflagged=0
+nflagged2=0
 for qso in QSOs:
 
+    # Has this QSO been flagged
     noted=False
+    if P.NOTES and 'flagged' in qso and qso['flagged']:
+        noted=True
+        nflagged+=1
+        print('\nOp flagged this qso:\n',qso)
+        note=qso['call']+' FLAGGED '+str(nflagged)
+        
     for key in qso.keys():
+        
         if key not in KEYS:
             #print('Adding key',key)
             #if not P.PRUNE or key not in ['band_rx','freq_rx','my_city']:
@@ -178,7 +189,7 @@ for qso in QSOs:
                 KEYS.append(key)
 
         # Is there a question about any field?
-        if '?' in qso[key] and P.NOTES and not noted:
+        if P.NOTES and type(qso[key])==str and '?' in qso[key] and not noted:
             noted=True
             print('\nQuestionable field:',key,qso[key],'\n',qso)
             note=qso['call']+' '+key+' '+qso[key]
@@ -313,11 +324,22 @@ for qso in QSOs:
 
     # If we passed all the criteria, add this qso to our list
     if save_qso:
+        if noted and P.RunInspector:
+            nflagged2+=1
+            print('\nInspecting flagged QSO',nflagged2,'of',nflagged)
+            inspector=QSO_INSPECTOR(qso)
+            print(inspector.qso2)
+            print('Burp!',inspector.Changed,inspector.SkipRemaining)
+            if inspector.Changed:
+                qso=inspector.qso2
+            P.RunInspector = not inspector.SkipRemaining
+            #sys.exit()
+            
         QSOs_out.append(qso)
         #print(qso)
         if noted:
             cmd='split_wave $fname -snip ' + qso['time_off'] + \
-                  ' ; audacity SNIPPIT.wav > & /dev/null'
+                  ' ; audacity SNIPPIT.wav >& /dev/null'
             print('\n#',note)
             print(cmd,'\n')
             fp.write('\n# %s\n' % (note) )
