@@ -1,4 +1,7 @@
-#! /usr/bin/python3
+#! /home/joea/miniconda3/envs/aa2il/bin/python -u
+#
+# NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
+# OLD: /usr/bin/python3 -u 
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
