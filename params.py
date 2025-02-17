@@ -2,7 +2,7 @@
 ################################################################################
 #
 # Params.py - Rev 1.0
-# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Command line param parser for adif tool.
 #
@@ -49,6 +49,8 @@ class PARAMS:
                               help='Satellite QSOs')
         arg_proc.add_argument('-strict', action='store_true',
                               help='Strict Rules for Calls')
+        arg_proc.add_argument('-diff', action='store_true',
+                              help='Reconcile differences between two logs')
         arg_proc.add_argument('-aca', action='store_true',
                               help='Compare CWops worked vs ACA lists')
         arg_proc.add_argument('-notes', action='store_true',
@@ -134,6 +136,12 @@ class PARAMS:
             sys.exit(0)
 
         self.output_file = args.o
+
+        self.DIFF = args.diff
+        if self.DIFF and len(self.input_files)!=2:
+            print('\nERROR - need excatly two (2) input files for a diff')
+            print('Input files=',self.input_files)
+            sys.exit(0)
 
         after=args.after
         if not after and self.ACA:

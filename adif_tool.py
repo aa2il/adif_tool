@@ -5,7 +5,7 @@
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021-4 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Program to manipulate adif files.
 #
@@ -34,6 +34,7 @@ from dx import ChallengeData
 from load_history import load_history
 from counties import *
 from qso_editor import QSO_INSPECTOR
+from copy import copy
 
 ############################################################################################
 
@@ -82,6 +83,58 @@ def check_id(qso):
 
 ############################################################################################
 
+def qso_compare(qso1,qso2):
+    
+    #keys=list( set( qso1.keys() ) | set( qso2.keys() ) )
+    keys=qso2.keys()
+    #print('keys=',keys)
+
+    same=True
+    qso3=copy(qso1)
+    for key in keys:
+        if key in ['file_name','flagged']:
+            continue
+        elif key in qso2:
+            if key in qso1:
+                if qso1[key]==qso2[key]:
+                    pass
+                else:
+                    print('DIFF: key=',key,'\tValues:',qso1[key],qso2[key])
+                    same=False
+                    qso3[key]=qso2[key]
+            else:
+                print('Missing key',key,'in qso1')
+                val2 = qso2[key]
+                print('qso1=',qso1)
+                print('qso2=',qso2)
+                print('val2=',val2,len(val2))
+                if len(val2)==0:
+                    pass
+                else:
+                    print('HELP!!!!')
+                    same=False
+                    sys.exit(0)
+        else:
+            if key in qso1:
+                #print('Missing key',key,'in qso2')
+                #same=False
+                pass
+            else:
+                print('Missing key',key,'in both qsos','\tHELP!')
+                same=False
+                sys.exit(0)
+
+    if not same:
+        print('\nDifference found:')
+        print('\tqso1=',qso1)
+        print('\tqso2=',qso2)
+        print('\tqso3=',qso3)
+        #sys.exit(0)
+
+    return same,qso3
+
+############################################################################################
+
 # Start of main
 print('\n****************************************************************************')
 print('\nADIF Tool beginning ...\n')
@@ -95,7 +148,9 @@ istart  = -1
 
 # Read adif input file(s)
 QSOs=[]
+nfiles=0
 for f in P.input_files:
+    nfiles+=1
     fname=os.path.expanduser( f )
     if not P.QUIET:
         print('Input file:',fname)
@@ -124,7 +179,10 @@ for f in P.input_files:
     for qso in qsos1:
         qso['file_name']=f
 
-    QSOs = QSOs + qsos1
+    if P.DIFF and nfiles==2:
+        QSOs2 = qsos1
+    else:
+        QSOs = QSOs + qsos1
     
 if not P.QUIET:
     print("\nThere are ",len(QSOs)," input QSOs ...")
@@ -166,7 +224,10 @@ QSOs_out=[]
 KEYS=[]
 nflagged=0
 nflagged2=0
+nqsos1=0
+nqsos2=0
 for qso in QSOs:
+    nqsos1+=1
 
     # Has this QSO been flagged
     noted=False
@@ -188,6 +249,13 @@ for qso in QSOs:
                 pass
             elif P.PRUNE and key in ['band_rx','freq_rx','my_city','my_rig']:
                 pass
+            elif key=='qth' and False:
+                print('key=',key)
+                print('keys=',list(qso.keys()))
+                print('KEYS=',KEYS)
+                KEYS.append(key)
+                print('KEYS=',KEYS)
+                sys.exit(0)
             else:
                 KEYS.append(key)
 
@@ -236,6 +304,30 @@ for qso in QSOs:
     else:
         save_qso=False
 
+    # Are we looking for a specific contest?
+    #print(P.CONTEST_IDs)
+    if P.CONTEST_IDs!=None:
+        if 'contest_id' in qso:
+            contest_id=qso['contest_id'].upper()
+            if contest_id not in P.CONTEST_IDs:
+                save_qso=False
+            #print(P.CONTEST_IDs,contest_id,len(P.CONTEST_IDs[0]),len(contest_id),contest_id in P.CONTEST_IDs,save_qso)
+        else:
+            save_qso=False
+
+    # Reconcile differences
+    if save_qso and P.DIFF:
+        qso2=QSOs2[nqsos2]
+        nqsos2+=1
+        same,qso3=qso_compare(qso,qso2)
+        if not same:
+            qso=qso3
+            #print('qso=',qso)
+            #sys.exit(0)
+        else:
+            #save_qso=False
+            pass
+
     # Is there a question about the call sign
     if '?' in qso['call'] and P.STRICT:
         print('Skipping QSO with questionable call', qso['call'])
@@ -267,15 +359,6 @@ for qso in QSOs:
     # Are we looking for a specific call(s)?
     if P.CALLS!=None:
         if qso['call'].upper() not in P.CALLS:
-            save_qso=False
-
-    # Are we looking for a specific contest?
-    if P.CONTEST_IDs!=None:
-        if 'contest_id' in qso:
-            contest_id=qso['contest_id'].upper()
-            if contest_id not in P.CONTEST_IDs:
-                save_qso=False
-        else:
             save_qso=False
 
     # Do we want all qso's with comments?
@@ -339,7 +422,8 @@ for qso in QSOs:
             #sys.exit()
             
         QSOs_out.append(qso)
-        #print(qso)
+        #print('qso=',qso)
+        #sys.exit(0)
         if noted:
             cmd='split_wave $fname -snip ' + qso['time_off'] + \
                   ' ; audacity SNIPPIT.wav >& /dev/null'
@@ -401,6 +485,7 @@ for i in range(len(QSOs_out2)):
 
 #print(valid)        
 #print(len(QSOs_out2),len(QSOs_out3))
+#print('rec0=',QSOs_out3[0])
         
 # Finally write out list of Q's
 p,n,ext=parse_file_name(P.output_file)

@@ -5,7 +5,7 @@
 ################################################################################
 #
 # qso_editor.py - Rev. 1.0
-# Copyright (C) 2024 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2024-5 by Joseph B. Attili, aa2il AT arrl DOT net
 #
 # Gui for editing QSO data.
 #
@@ -36,6 +36,7 @@ import time
 import platform
 import argparse
 from widgets_tk import StatusBar,SPLASH_SCREEN
+from ToolTip import *
 
 ################################################################################
 
@@ -379,18 +380,28 @@ class QSO_INSPECTOR():
         col=0
         button = Button(self.win, text="OK",command=self.Dismiss)
         button.grid(row=row,column=col,sticky=E+W)
+        tip = ToolTip(btn, ' Done with this entry ' )
 
         col+=1
         button = Button(self.win, text="Snip",command=self.Snip)
         button.grid(row=row,column=col,sticky=E+W)
+        tip = ToolTip(btn, ' Snip Audio for this entry ' )
 
+        col+=1
+        buttonn = Button(self.root, text='QRZ ?',command=self.Call_LookUp,\
+                         takefocus=0 ) 
+        button.grid(row=row,column=col,sticky=E+W)
+        tip = ToolTip(btn, ' Query QRZ.com ' )
+        
         col+=1
         button = Button(self.win, text="Cancel",command=self.Hide)
         button.grid(row=row,column=col,sticky=E+W)
+        tip = ToolTip(btn, ' Skip this entry ' )
 
         col+=1
         button = Button(self.win, text="Skip Rest",command=self.SkipRest)
         button.grid(row=row,column=col,sticky=E+W)
+        tip = ToolTip(btn, ' Skip remaining entries ' )
 
         self.win.protocol("WM_DELETE_WINDOW", self.Hide)        
         self.Show()
@@ -427,14 +438,21 @@ class QSO_INSPECTOR():
         self.Done=True
 
     def Snip(self):
-        print('Snip Snip ...')
+        print('\n********************************** Snip Snip ...')
         t=self.qso['time_off']
         d=self.qso['qso_date_off'][-2:]
         cmd='~/Python/split_wave/split_wave.py capture_*'+d+'*.wav -snip ' + t + \
             ' && audacity SNIPPIT.wav > /dev/null 2>&1 &'
-        print('\n',cmd,'\n')
+        print('\ncmd=',cmd,'\n')
         os.system(cmd)
-            
+
+    def Call_LookUp(self):
+        call = self.qso['call']
+        if len(call)>=3:
+            print('CALL_LOOKUP: Looking up '+call+' on QRZ.com')
+            link = 'https://www.qrz.com/db/' + call
+            webbrowser.open(link, new=2)
+
     def SkipRest(self):
         print('SkipRest ...')
         self.SkipRemaining=True
