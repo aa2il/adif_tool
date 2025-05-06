@@ -40,6 +40,11 @@ from ToolTip import *
 
 ################################################################################
 
+OVERWRITE=False
+OVERWRITE=True
+
+################################################################################
+
 # GUI for editing QSO data
 class QSO_EDITOR():
     def __init__(self,root,P):
@@ -54,7 +59,7 @@ class QSO_EDITOR():
         self.nfields=0
         self.QSOs=[]
         self.Dirty=False
-        self.fmt=" %8s %8s  %-10.10s  %-4.4s %-4.4s %-8.8s %-8.8s %+5.5s"
+        self.fmt=" %8s %8s  %-10.10s  %-4.4s %-4.4s %-8.8s %-12.12s %+5.5s"
  
         # Open main or pop-up window depending on if "root" is given
         if root:
@@ -334,7 +339,10 @@ if __name__ == '__main__':
     mainloop()
 
     # Save adif file
-    fname2=P.fname+'2'
+    if OVERWRITE:
+        fname2=P.fname
+    else:
+        fname2=P.fname+'2'
     write_adif_log(qsos,fname2,P,SORT_KEYS=False)
 
     print("Y'all come on back now ya hear!")
@@ -380,28 +388,28 @@ class QSO_INSPECTOR():
         col=0
         button = Button(self.win, text="OK",command=self.Dismiss)
         button.grid(row=row,column=col,sticky=E+W)
-        tip = ToolTip(btn, ' Done with this entry ' )
+        tip = ToolTip(button, ' Done with this entry ' )
 
         col+=1
         button = Button(self.win, text="Snip",command=self.Snip)
         button.grid(row=row,column=col,sticky=E+W)
-        tip = ToolTip(btn, ' Snip Audio for this entry ' )
+        tip = ToolTip(button, ' Snip Audio for this entry ' )
 
         col+=1
         buttonn = Button(self.root, text='QRZ ?',command=self.Call_LookUp,\
                          takefocus=0 ) 
         button.grid(row=row,column=col,sticky=E+W)
-        tip = ToolTip(btn, ' Query QRZ.com ' )
+        tip = ToolTip(button, ' Query QRZ.com ' )
         
         col+=1
         button = Button(self.win, text="Cancel",command=self.Hide)
         button.grid(row=row,column=col,sticky=E+W)
-        tip = ToolTip(btn, ' Skip this entry ' )
+        tip = ToolTip(button, ' Skip this entry ' )
 
         col+=1
         button = Button(self.win, text="Skip Rest",command=self.SkipRest)
         button.grid(row=row,column=col,sticky=E+W)
-        tip = ToolTip(btn, ' Skip remaining entries ' )
+        tip = ToolTip(button, ' Skip remaining entries ' )
 
         self.win.protocol("WM_DELETE_WINDOW", self.Hide)        
         self.Show()

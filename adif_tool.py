@@ -5,7 +5,7 @@
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021-5 by Joseph B. Attili, aa2il AT arrl DOT net
+# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Program to manipulate adif files.
 #
@@ -39,18 +39,33 @@ from copy import copy
 ############################################################################################
 
 def check_id(qso):
-    qth=qso['qth'].split('/')[0]
+    ok=True
+    if 'qth' in qso:
+        qth=qso['qth'].split('/')[0]
+    else:
+        print('\nHELP! No qth!')
+        print('qso=',qso)
+        print('--- Giving up ---')
+        qth='??'
+        ok=False
+        #sys.exit(0)
+        return qso,ok
     id=qso['contest_id'][:2]
-    if id in ['W1','W7']:
+    if id in ['W1','W7','DE','IN']:
         state=qth[:2]
         if len(qth)<5:
             print('\nCHECK ID: Unable to confirm state - id=',id)
             print('qso=',qso)
             print('qth=',qth,'\tstate=',state,'\tid=',id)
-            print('counties=',COUNTIES[id])
             id2=id
-            if (qth in COUNTIES[id]) or (id+qth in COUNTIES[id]):
+            if id=='W7':
+                id9='7QP'
+            else:
+                id9=id
+            print('counties=',COUNTIES[id9])
+            if (qth in COUNTIES[id9]) or (id+qth in COUNTIES[id9]):
                 print('Its Probably OK!')
+            ok=True
             #sys.exit(0)
         elif (state in W7_STATES) or (state+'7QP' in W7_STATES):
             #print(W7_STATES)
@@ -67,19 +82,28 @@ def check_id(qso):
             print('\nCHECK ID: Unable to confirm state - id=',id)
             print('qso=',qso)
             print('qth=',qth)
-            print('counties=',COUNTIES[id])
-            print('--- Giving up ---')
-            sys.exit(0)
+            state=qth[:2]
+            if id in ['IN','DE']:
+                if state==id:
+                    print('Its Probably OK!')
+                    id2=id
+                elif state=='WA':
+                    id2='W7'
+            else:
+                print('counties=',COUNTIES[id])
+                print('--- Giving up ---')
+                sys.exit(0)
 
     qso2=qso
     if id!=id2:
+        ok=False
         print('\nCHECK ID: Contest ID fixup - ',id,' --> ',id2)
         print('qso=',qso)
         print('qth=',qth,'\tstate=',state,'\tid=',id)
-        sys.exit(0)
+        #sys.exit(0)
         qso2['contest_id']=id2+qso['contest_id'][2:]
 
-    return qso2
+    return qso2,ok
 
 ############################################################################################
 
@@ -90,6 +114,7 @@ def qso_compare(qso1,qso2):
     #print('keys=',keys)
 
     same=True
+    ndiff=0
     qso3=copy(qso1)
     for key in keys:
         if key in ['file_name','flagged']:
@@ -99,21 +124,28 @@ def qso_compare(qso1,qso2):
                 if qso1[key]==qso2[key]:
                     pass
                 else:
-                    print('DIFF: key=',key,'\tValues:',qso1[key],qso2[key])
+                    print('QSO COMPARE: key=',key,'\tValues:',qso1[key],qso2[key])
                     same=False
                     qso3[key]=qso2[key]
+                    ndiff+=1
             else:
                 print('Missing key',key,'in qso1')
                 val2 = qso2[key]
-                print('qso1=',qso1)
-                print('qso2=',qso2)
-                print('val2=',val2,len(val2))
                 if len(val2)==0:
                     pass
                 else:
-                    print('HELP!!!!')
-                    same=False
-                    sys.exit(0)
+                    if False:
+                        print('qso1=',qso1)
+                        print('qso2=',qso2)
+                        print('val2=',val2,len(val2))
+                        print('HELP!!!!')
+                        same=False
+                        sys.exit(0)
+                    else:
+                        qso3[key]=val2
+                        same=False
+                        ndiff+=1
+                        
         else:
             if key in qso1:
                 #print('Missing key',key,'in qso2')
@@ -125,13 +157,13 @@ def qso_compare(qso1,qso2):
                 sys.exit(0)
 
     if not same:
-        print('\nDifference found:')
+        print('\nDifference found: ndiff=',ndiff)
         print('\tqso1=',qso1)
         print('\tqso2=',qso2)
         print('\tqso3=',qso3)
         #sys.exit(0)
 
-    return same,qso3
+    return same,ndiff,qso3
 
 ############################################################################################
 
@@ -181,6 +213,7 @@ for f in P.input_files:
 
     if P.DIFF and nfiles==2:
         QSOs2 = qsos1
+        found_start=False
     else:
         QSOs = QSOs + qsos1
     
@@ -228,6 +261,30 @@ nqsos1=0
 nqsos2=0
 for qso in QSOs:
     nqsos1+=1
+
+    # Get qso date
+    if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
+        date_off = datetime.datetime.strptime( qso['qso_date_off'], "%Y%m%d")
+        if 'qso_date' not in qso:
+            qso['qso_date']=qso['qso_date_off']
+    elif 'qso_date' in qso:
+        date_off = datetime.datetime.strptime( qso['qso_date'], "%Y%m%d")
+    else:
+        print('\nHmmmmmmmmmm - cant figure out date!')
+        print(rec)
+        print(keys)
+        sys.exit(0)
+
+    # Patch up
+    if 'time_on' not in qso:
+        qso['time_on']=qso['time_off']
+        
+    # Is the qso date in our window?
+    if date_off>=P.date0 and date_off<=P.date1:
+        save_qso=True
+    else:
+        save_qso=False
+        continue
 
     # Has this QSO been flagged
     noted=False
@@ -281,34 +338,12 @@ for qso in QSOs:
         print(qso)
         sys,exit(0)
 
-    # Get qso date
-    if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
-        date_off = datetime.datetime.strptime( qso['qso_date_off'], "%Y%m%d")
-        if 'qso_date' not in qso:
-            qso['qso_date']=qso['qso_date_off']
-    elif 'qso_date' in qso:
-        date_off = datetime.datetime.strptime( qso['qso_date'], "%Y%m%d")
-    else:
-        print('\nHmmmmmmmmmm - cant figure out date!')
-        print(rec)
-        print(keys)
-        sys.exit(0)
-
-    # Patch up
-    if 'time_on' not in qso:
-        qso['time_on']=qso['time_off']
-        
-    # Is the qso date in our window?
-    if date_off>=P.date0 and date_off<=P.date1:
-        save_qso=True
-    else:
-        save_qso=False
-
     # Are we looking for a specific contest?
     #print(P.CONTEST_IDs)
     if P.CONTEST_IDs!=None:
         if 'contest_id' in qso:
             contest_id=qso['contest_id'].upper()
+            #print(P.CONTEST_IDs,contest_id)
             if contest_id not in P.CONTEST_IDs:
                 save_qso=False
             #print(P.CONTEST_IDs,contest_id,len(P.CONTEST_IDs[0]),len(contest_id),contest_id in P.CONTEST_IDs,save_qso)
@@ -317,9 +352,13 @@ for qso in QSOs:
 
     # Reconcile differences
     if save_qso and P.DIFF:
+        if nqsos2>=len(QSOs2):
+            print('\nWhoops!\tnqsos2=',nqsos2,len(QSOs2))
+            print('qso=',qso)
+            print('QSOs2[-1]=',QSOs2[-1])
         qso2=QSOs2[nqsos2]
         nqsos2+=1
-        same,qso3=qso_compare(qso,qso2)
+        same,ndiff,qso3=qso_compare(qso,qso2)
         if not same:
             qso=qso3
             #print('qso=',qso)
@@ -374,7 +413,17 @@ for qso in QSOs:
         if P.COMMENT:
             save_qso = True
 
-    # Are we looking for potentially over-looked ACA contacts
+    # Are we looking for 1x1 callsigns?
+    if P.THREE and save_qso:
+        call = qso['call'].upper()
+        if len(call)==3:
+            pass
+        else:
+            save_qso = False
+        #print(call,save_qso)
+        #sys.exit(0)
+        
+    # Are we looking for potentially over-looked ACA contacts?
     if P.ACA and save_qso:
         call = qso['call'].upper()
         mode = qso['mode'].upper()
@@ -406,10 +455,21 @@ for qso in QSOs:
             print('ACA2:',naca,' \t',cwo,'  \t',int(num),'\t',status)
             maybe.append(cwo)
         else:
-            save_qso = False        
+            save_qso = False
 
     # If we passed all the criteria, add this qso to our list
+    #print('HEY!',save_qso)
     if save_qso:
+        #print('Save QSO ...',noted,P.RunInspector)
+
+        # Check State QSO Contest IDs
+        if P.QPs!=None:
+            contest_id=qso['contest_id'].upper()
+            if 'QSO-PARTY' in contest_id and True:
+                qso3,ok=check_id(qso)
+                noted = noted or not ok
+                note = 'State QP contest ID change'
+
         if noted and P.RunInspector:
             nflagged2+=1
             print('\nInspecting flagged QSO',nflagged2,'of',nflagged)

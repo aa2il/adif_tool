@@ -71,6 +71,8 @@ class PARAMS:
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-qps", help="State QPs",
                               type=str,default=None,nargs='*')
+        arg_proc.add_argument("-three",action='store_true',
+                              help="1x1 Calls")
         arg_proc.add_argument("-contest", help="Contest ID",
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-quiet", help="Quiet Mode",
@@ -84,6 +86,7 @@ class PARAMS:
         self.STRICT  = args.strict
         self.NOTES   = args.notes
         self.ACA     = args.aca
+        self.THREE   = args.three
         self.QUIET   = args.quiet
         self.RunInspector = True
 
@@ -144,7 +147,7 @@ class PARAMS:
             sys.exit(0)
 
         after=args.after
-        if not after and self.ACA:
+        if not after and (self.ACA or self.THREE):
             after='1/1'
         ndays=args.days
         if after:
