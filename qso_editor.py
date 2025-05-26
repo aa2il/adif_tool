@@ -396,7 +396,7 @@ class QSO_INSPECTOR():
         tip = ToolTip(button, ' Snip Audio for this entry ' )
 
         col+=1
-        buttonn = Button(self.root, text='QRZ ?',command=self.Call_LookUp,\
+        button = Button(self.root, text='QRZ ?',command=self.Call_LookUp,\
                          takefocus=0 ) 
         button.grid(row=row,column=col,sticky=E+W)
         tip = ToolTip(button, ' Query QRZ.com ' )
@@ -451,7 +451,7 @@ class QSO_INSPECTOR():
         d=self.qso['qso_date_off'][-2:]
         cmd='~/Python/split_wave/split_wave.py capture_*'+d+'*.wav -snip ' + t + \
             ' && audacity SNIPPIT.wav > /dev/null 2>&1 &'
-        print('\ncmd=',cmd,'\n')
+        print('\ncmd=\n',cmd,'\n')
         os.system(cmd)
 
     def Call_LookUp(self):
