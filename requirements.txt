@@ -1,11 +1,17 @@
-# If necessary, activate the "sandbox:"
+###############################################################################
 #
-#  cd ~/Python/contest
-#  conda activate aa2il
+# Under uv:
+#     rm -r .venv/ pyproject.toml .python-version uv.lock
+#     uv init
+#     uv add -r requirements.txt
 #
-# Install the required libs:
+# Since we often run this script from another directory, embed the dependencies
+# in the script itself:
 #
-# pip3 install -r requirements.txt
+#     uv add --script adif_tool.py -r requirements.txt
+#
+# This was how this all used to work:
+#     pip3 install -r requirements.txt
 #
 # We also need the "libs" and "data" directories which are available in this
 # repository.

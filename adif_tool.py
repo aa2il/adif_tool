@@ -1,4 +1,4 @@
-#! /home/joea/miniconda3/envs/aa2il/bin/python -u
+#!/usr/bin/env -S uv run --script
 #
 # NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
 # OLD: /usr/bin/python3 -u 
