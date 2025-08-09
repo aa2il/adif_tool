@@ -157,10 +157,12 @@ def qso_compare(qso1,qso2):
                 sys.exit(0)
 
     if not same:
-        print('\nDifference found: ndiff=',ndiff)
+        print('Difference found: ndiff=',ndiff)
+        print('\tcall=',qso1['call'],qso2['call'],qso3['call'])
         print('\tqso1=',qso1)
         print('\tqso2=',qso2)
         print('\tqso3=',qso3)
+        print(' ')
         #sys.exit(0)
 
     return same,ndiff,qso3
@@ -356,6 +358,7 @@ for qso in QSOs:
             print('\nWhoops!\tnqsos2=',nqsos2,len(QSOs2))
             print('qso=',qso)
             print('QSOs2[-1]=',QSOs2[-1])
+            print('Did you delete a QSO somewhere along the way?')
         qso2=QSOs2[nqsos2]
         nqsos2+=1
         same,ndiff,qso3=qso_compare(qso,qso2)

@@ -1,4 +1,4 @@
-#! /home/joea/miniconda3/envs/aa2il/bin/python -u
+#!/usr/bin/env -S uv run --script
 #
 # NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
 # OLD: /usr/bin/python3 -u 
@@ -37,6 +37,7 @@ import platform
 import argparse
 from widgets_tk import StatusBar,SPLASH_SCREEN
 from ToolTip import *
+import webbrowser
 
 ################################################################################
 
@@ -277,77 +278,6 @@ class QSO_EDITOR():
         self.Dirty=False
         
 ################################################################################
-
-# If this file is called as main, run as independent exe
-# Not quite there yet ...
-if __name__ == '__main__':
-
-    from settings import read_settings
-    from fileio import parse_adif,write_adif_log
-    
-    print('Howdy Ho!')
-    
-    # Structure to contain processing params
-    class EDITOR_PARAMS:
-        def __init__(self):
-
-            # Init
-            self.SMALL_FONT=False
-            
-            # Read config file
-            self.SETTINGS,RCFILE = read_settings('.keyerrc')
-
-            # Process command line args
-            arg_proc = argparse.ArgumentParser()
-            arg_proc.add_argument('Fname', metavar='Fname',
-                                  type=str, default=None,
-                                  help='ADIF Input File Name')
-            args = arg_proc.parse_args()
-            
-            if args.Fname==None:
-                DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
-                MY_CALL=P.SETTINGS['MY_CALL']
-                self.fname=DIR_NAME+MY_CALL+'.adif'
-                #fname=MY_CALL+'.adif'
-            else:
-                DIR_NAME = os.path.expanduser('')
-                self.fname=DIR_NAME+args.Fname
-
-            if False:
-                print('Input file:',self.fname)
-                sys.exit(0)
-            
-
-            
-    # Set basic run-time params
-    P=EDITOR_PARAMS()
-
-    # Create GUI
-    P.Editor = QSO_EDITOR(None,P)
-    
-    # Read ADIF log
-    print('Input file:',P.fname)
-    qsos = parse_adif(P.fname)
-    print("\nThere are ",len(qsos)," input QSOs ...")
-    print('Last qso=',qsos[-1])
-
-    # Populate editor
-    P.Editor.add_qsos(qsos)
-    
-    # And away we go!
-    #P.Editor.status_bar.setText("Let's Rock!")
-    mainloop()
-
-    # Save adif file
-    if OVERWRITE:
-        fname2=P.fname
-    else:
-        fname2=P.fname+'2'
-    write_adif_log(qsos,fname2,P,SORT_KEYS=False)
-
-    print("Y'all come on back now ya hear!")
-
-################################################################################
     
 class QSO_INSPECTOR():
     def __init__(self,qso,root=None):
@@ -449,13 +379,20 @@ class QSO_INSPECTOR():
         print('\n********************************** Snip Snip ...')
         t=self.qso['time_off']
         d=self.qso['qso_date_off'][-2:]
-        cmd='~/Python/split_wave/split_wave.py capture_*'+d+'*.wav -snip ' + t + \
+        
+        cmd1='rm -f SNIPPIT.wav ' # ; ls SNIPPIT.wav'
+        status = os.system(cmd1)
+        print('\tcmd1=',cmd1,'\n\tstatus=',status)
+        
+        #cmd2 = '~/Python/split_wave/split_wave.py capture_*'+d+'_*.wav -snip '+t
+        cmd2 = '~/Python/split_wave/split_wave.py capture_*.wav -snip '+t+' -date '+d +\
             ' && audacity SNIPPIT.wav > /dev/null 2>&1 &'
-        print('\ncmd=\n',cmd,'\n')
-        os.system(cmd)
+        status = os.system(cmd2)
+        print('\tcmd2=',cmd2,'\n\tstatus=',status)
 
     def Call_LookUp(self):
         call = self.qso['call']
+        print('\n********************************** Call Lookup ...',call)
         if len(call)>=3:
             print('CALL_LOOKUP: Looking up '+call+' on QRZ.com')
             link = 'https://www.qrz.com/db/' + call
@@ -467,3 +404,74 @@ class QSO_INSPECTOR():
         self.Dismiss()
         
         
+################################################################################
+
+# If this file is called as main, run as independent exe
+# Not quite there yet ...
+if __name__ == '__main__':
+
+    from settings import read_settings
+    from fileio import parse_adif,write_adif_log
+    
+    print('Howdy Ho!')
+    
+    # Structure to contain processing params
+    class EDITOR_PARAMS:
+        def __init__(self):
+
+            # Init
+            self.SMALL_FONT=False
+            
+            # Read config file
+            self.SETTINGS,RCFILE = read_settings('.keyerrc')
+
+            # Process command line args
+            arg_proc = argparse.ArgumentParser()
+            arg_proc.add_argument('Fname', metavar='Fname',
+                                  type=str, default=None,
+                                  help='ADIF Input File Name')
+            args = arg_proc.parse_args()
+            
+            if args.Fname==None:
+                DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+                MY_CALL=P.SETTINGS['MY_CALL']
+                self.fname=DIR_NAME+MY_CALL+'.adif'
+                #fname=MY_CALL+'.adif'
+            else:
+                DIR_NAME = os.path.expanduser('')
+                self.fname=DIR_NAME+args.Fname
+
+            if False:
+                print('Input file:',self.fname)
+                sys.exit(0)
+            
+
+            
+    # Set basic run-time params
+    P=EDITOR_PARAMS()
+
+    # Create GUI
+    P.Editor = QSO_EDITOR(None,P)
+    
+    # Read ADIF log
+    print('Input file:',P.fname)
+    qsos = parse_adif(P.fname)
+    print("\nThere are ",len(qsos)," input QSOs ...")
+    print('Last qso=',qsos[-1])
+
+    # Populate editor
+    P.Editor.add_qsos(qsos)
+    
+    # And away we go!
+    #P.Editor.status_bar.setText("Let's Rock!")
+    mainloop()
+
+    # Save adif file
+    if OVERWRITE:
+        fname2=P.fname
+    else:
+        fname2=P.fname+'2'
+    write_adif_log(qsos,fname2,P,SORT_KEYS=False)
+
+    print("Y'all come on back now ya hear!")
+

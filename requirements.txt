@@ -9,6 +9,7 @@
 # in the script itself:
 #
 #     uv add --script adif_tool.py -r requirements.txt
+#     uv add --script qso_editor.py -r requirements.txt
 #
 # This was how this all used to work:
 #     pip3 install -r requirements.txt
