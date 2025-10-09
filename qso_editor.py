@@ -306,6 +306,8 @@ class QSO_INSPECTOR():
             row+=1
             Label(self.win, text=key+':').grid(row=row, column=0)
             box = Entry(self.win)
+            if key in ['call','qth','srx','srx_string']:
+                box.config({"background": "lightgreen"})
             box.grid(row=row,column=1,sticky=E+W)
             #box.delete(0, END)  
             self.boxes.append(box)
@@ -391,7 +393,8 @@ class QSO_INSPECTOR():
         print('\tcmd2=',cmd2,'\n\tstatus=',status)
 
     def Call_LookUp(self):
-        call = self.qso['call']
+        #call = self.qso['call']
+        call = self.boxes['call'].get().upper()
         print('\n********************************** Call Lookup ...',call)
         if len(call)>=3:
             print('CALL_LOOKUP: Looking up '+call+' on QRZ.com')

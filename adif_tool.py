@@ -35,6 +35,7 @@ from load_history import load_history
 from counties import *
 from qso_editor import QSO_INSPECTOR
 from copy import copy
+from utilities import error_trap
 
 ############################################################################################
 
@@ -476,13 +477,16 @@ for qso in QSOs:
         if noted and P.RunInspector:
             nflagged2+=1
             print('\nInspecting flagged QSO',nflagged2,'of',nflagged)
-            inspector=QSO_INSPECTOR(qso)
-            print(inspector.qso2)
-            print('Burp!',inspector.Changed,inspector.SkipRemaining)
-            if inspector.Changed:
-                qso=inspector.qso2
-            P.RunInspector = not inspector.SkipRemaining
-            #sys.exit()
+            try:
+                inspector=QSO_INSPECTOR(qso)
+                print(inspector.qso2)
+                print('Burp!',inspector.Changed,inspector.SkipRemaining)
+                if inspector.Changed:
+                    qso=inspector.qso2
+                P.RunInspector = not inspector.SkipRemaining
+                #sys.exit()
+            except:
+                error_trap('ADIF_TOOL - Saving QSO: I dont know what I am doing here?!')
             
         QSOs_out.append(qso)
         #print('qso=',qso)

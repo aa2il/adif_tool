@@ -106,9 +106,10 @@ class PARAMS:
         # Form list of file names
         DIR_NAME = ""
         fname = args.i
-        #print(fname)
+        #print('fname 1=',fname)
         if args.all:
             fname=['*.adi','*.adif','fflog/*.adi*']
+        #print('fname 2=',fname)
         if fname==None:
 
             # Use usual defaults if nothing speficied
@@ -116,11 +117,12 @@ class PARAMS:
             DIR_NAME = os.path.expanduser( '~/logs/' )
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','wsjtx_log.adi','wsjtx_log9*.adi','wsjt_contest_log.adif',
+            for fn in [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log9*.adi','wsjt_contest_log.adif',
                        'sats.adif','sprint.adif','*2024*.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
                 print('LOG FILE found:',fn)
                 fname.append(fn)
-
+        #print('fname 3=',fname)
+        
         # Expand wildcards if necessary        
         print('fname=',fname,'\t',type(fname),'\nDIR_NAME=',DIR_NAME)
         if type(fname) == list:   
