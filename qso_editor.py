@@ -300,7 +300,8 @@ class QSO_INSPECTOR():
         self.win.title("QSO Inspector")
 
         row=-1
-        self.boxes=[]
+        #self.boxes=[]
+        self.boxes={}
         self.keys=qso.keys()
         for key in self.keys:
             row+=1
@@ -310,7 +311,8 @@ class QSO_INSPECTOR():
                 box.config({"background": "lightgreen"})
             box.grid(row=row,column=1,sticky=E+W)
             #box.delete(0, END)  
-            self.boxes.append(box)
+            #self.boxes.append(box)
+            self.boxes[key]=box
             try:
                 box.insert(0,qso[key])
             except:
@@ -354,8 +356,10 @@ class QSO_INSPECTOR():
 
     def Dismiss(self):
         print('DISMISSED ... ')
-        for key,box in zip(self.keys,self.boxes):
-            val=box.get()
+        #for key,box in zip(self.keys,self.boxes):
+        for key in self.keys:
+            #val=box.get()
+            val=self.boxes[key].get()       # No .upper() since some vals are lc
             self.qso2[key] = val
             self.Changed |= val != self.qso[key]
 
@@ -394,7 +398,14 @@ class QSO_INSPECTOR():
 
     def Call_LookUp(self):
         #call = self.qso['call']
+        
+        #print(self.keys)
+        #print(list(self.keys))
+        #idx=list(self.keys).index('call')
+        #print(idx,self.boxes[idx])
+        #call = self.boxes[idx].get().upper()
         call = self.boxes['call'].get().upper()
+        
         print('\n********************************** Call Lookup ...',call)
         if len(call)>=3:
             print('CALL_LOOKUP: Looking up '+call+' on QRZ.com')

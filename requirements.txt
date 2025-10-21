@@ -28,3 +28,9 @@ pyserial
 pytz
 numpy
 
+psutil
+scipy
+
+#adif_io
+#adiftools
+#sqlalchemy

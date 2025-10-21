@@ -213,6 +213,8 @@ for f in P.input_files:
 
     for qso in qsos1:
         qso['file_name']=f
+        #if qso['call']=='K0TC':
+        #    print(qso)
 
     if P.DIFF and nfiles==2:
         QSOs2 = qsos1
@@ -370,6 +372,14 @@ for qso in QSOs:
         else:
             #save_qso=False
             pass
+        if 'flagged' in qso3 and False:
+            print('\nqso  =',qso)
+            print(qso.keys())
+            print('\nqso2 =',qso2)
+            print(qso2.keys())
+            print('\nqso3 =',qso3)
+            print(qso3.keys())
+            sys.exit(0)
 
     # Is there a question about the call sign
     if '?' in qso['call'] and P.STRICT:
@@ -556,6 +566,11 @@ for i in range(len(QSOs_out2)):
         
 # Finally write out list of Q's
 p,n,ext=parse_file_name(P.output_file)
+if P.DIFF:
+    IGNORE_KEYS=['flagged']
+else:
+    IGNORE_KEYS=[]
+
 if ext=='.csv':
     if not P.QUIET:
         print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
@@ -564,7 +579,7 @@ else:
     if not P.QUIET:
         print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
     P.contest_name=''
-    write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False)
+    write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=False,IGNORE=IGNORE_KEYS)
 
 # Show a list of QSOs for specified call(s)
 if P.CALLS or P.ACA:
