@@ -117,8 +117,8 @@ class PARAMS:
             DIR_NAME = os.path.expanduser( '~/logs/' )
             MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log9*.adi','wsjt_contest_log.adif',
-                       'sats.adif','sprint.adif','*2024*.adif']:  # ,'wsjtx_log_991a.adi','wsjtx_log_9700.adi']:
+            for fn in [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi','sats.adif']:
+                # ,'sprint.adif','*2024*.adif']:  # ,'wsjt_contest_log.adif','wsjtx_log_991a.adi','wsjtx_log_9700.adi'
                 print('LOG FILE found:',fn)
                 fname.append(fn)
         #print('fname 3=',fname)
@@ -129,11 +129,11 @@ class PARAMS:
             self.input_files  = []
             for fn in fname:
                 if not self.QUIET:
-                    print(fn)
+                    print('fn=',fn)
                 for fn2 in glob.glob(DIR_NAME+fn):
                     self.input_files.append(fn2)
-                    if not self.QUIET and False:
-                        print(fn2)
+                    if not self.QUIET:
+                        print('\tfn2=',fn2)
         else:
             self.input_files  = [fname]
         if False:
