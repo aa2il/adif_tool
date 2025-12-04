@@ -27,9 +27,12 @@
 pyserial
 pytz
 numpy
-
 psutil
 scipy
+
+xlrd
+unidecode
+chardet
 
 #adif_io
 #adiftools

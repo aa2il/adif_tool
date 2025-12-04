@@ -216,6 +216,14 @@ for f in P.input_files:
         #if qso['call']=='K0TC':
         #    print(qso)
 
+        if False:
+            for key in qso.keys():
+                if '><' in key:
+                    print('\nWhoops! bad key=',key)
+                    print('fname=',fname)
+                    print('qso=',qso)
+                    sys.exit(0)        
+
     if P.DIFF and nfiles==2:
         QSOs2 = qsos1
         found_start=False
@@ -526,43 +534,50 @@ if not P.QUIET:
     #print('\nKEYS2=',KEYS2)
 
 # Sort list of Q's by date & time
+if not P.QUIET:
+    print('Sorting ...')
 QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
 #print('rec0=',QSOs_out2[0])
 
 # Merge the same Q's
-QSOs_out3=[]
-valid=len(QSOs_out2)*[True]
-for i in range(len(QSOs_out2)):
-    qso1=QSOs_out2[i]
-    keys1=qso1.keys()
-    #print(i,valid[i])
-    if valid[i]:
-        for j in range(i+1,len(QSOs_out2)):
-            qso2=QSOs_out2[j]
-            match=True
-            for field in ['call','qso_date','time_on']:
-                match = match and (qso1[field]==qso2[field])
-            if match:
-                #print('\nMatch!!!',i,j,valid[j])
-                keys2=qso2.keys()
-                #print(qso1)
-                #print(qso2)
-                valid[j]=False
-                for key in keys2:
-                    if key!='unique' and (key not in keys1 or len(qso1[key])==0):
-                        qso1[key]=qso2[key]
+if not P.QUIET:
+    print('Merging ...')
+if P.SQL:
+    QSOs_out3=QSOs_out2
+else:
+    QSOs_out3=[]
+    valid=len(QSOs_out2)*[True]
+    for i in range(len(QSOs_out2)):
+        qso1=QSOs_out2[i]
+        keys1=qso1.keys()
+        #print(i,valid[i])
+        if valid[i]:
+            for j in range(i+1,len(QSOs_out2)):
+                qso2=QSOs_out2[j]
+                match=True
+                for field in ['call','qso_date','time_on']:
+                    match = match and (qso1[field]==qso2[field])
+                if match:
+                    #print('\nMatch!!!',i,j,valid[j])
+                    keys2=qso2.keys()
+                    #print(qso1)
+                    #print(qso2)
+                    valid[j]=False
+                    for key in keys2:
+                        if key!='unique' and (key not in keys1 or len(qso1[key])==0):
+                            qso1[key]=qso2[key]
 
-            # Check State QSO Contest IDs
-            if P.QPs!=None:
-                qso3=check_id(qso1)
-            else:
-                qso3=qso1
+                # Check State QSO Contest IDs
+                if P.QPs!=None:
+                    qso3=check_id(qso1)
+                else:
+                    qso3=qso1
                         
-        QSOs_out3.append(qso1)
+            QSOs_out3.append(qso1)
 
-#print(valid)        
-#print(len(QSOs_out2),len(QSOs_out3))
-#print('rec0=',QSOs_out3[0])
+    #print(valid)        
+    #print(len(QSOs_out2),len(QSOs_out3))
+    #print('rec0=',QSOs_out3[0])
         
 # Finally write out list of Q's
 p,n,ext=parse_file_name(P.output_file)
@@ -571,7 +586,11 @@ if P.DIFF:
 else:
     IGNORE_KEYS=[]
 
-if ext=='.csv':
+if ext=='.db':
+    if not P.QUIET:
+        print('Writing output SQL file with',len(QSOs_out3),' QSOs ...')
+    write_sql_file(P.output_file,KEYS2,QSOs_out3)
+elif ext=='.csv':
     if not P.QUIET:
         print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
     write_csv_file(P.output_file,KEYS2,QSOs_out3)

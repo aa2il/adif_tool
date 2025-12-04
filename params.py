@@ -44,7 +44,9 @@ class PARAMS:
         arg_proc.add_argument("-i", help="Input ADIF or CSV file(s)",
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-o", help="Output ADIF or CSV file",
-                              type=str,default='New.adif')
+                              type=str,default=None)
+        arg_proc.add_argument('-sql', action='store_true',
+                              help='Create SQL database')
         arg_proc.add_argument('-sats', action='store_true',
                               help='Satellite QSOs')
         arg_proc.add_argument('-strict', action='store_true',
@@ -82,6 +84,7 @@ class PARAMS:
         args = arg_proc.parse_args()
 
         self.COMMENT = args.comments
+        self.SQL     = args.sql
         self.SATS    = args.sats
         self.STRICT  = args.strict
         self.NOTES   = args.notes
@@ -102,6 +105,7 @@ class PARAMS:
         S=CONFIG_PARAMS('.keyerrc')
         self.SETTINGS=S.SETTINGS
         #print(self.SETTINGS)
+        MY_CALL=self.SETTINGS['MY_CALL']
 
         # Form list of file names
         DIR_NAME = ""
@@ -112,13 +116,16 @@ class PARAMS:
         #print('fname 2=',fname)
         if fname==None:
 
+            flist = [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi','sats.adif']
+            #flist = [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi','sats.adif',
+            #         ,'sprint.adif','*2024*.adif','wsjt_contest_log.adif','wsjtx_log_991a.adi','wsjtx_log_9700.adi'
+            flist = ['*.adif','*.adi']
+
             # Use usual defaults if nothing speficied
             #DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
             DIR_NAME = os.path.expanduser( '~/logs/' )
-            MY_CALL=self.SETTINGS['MY_CALL']
             fname=[]
-            for fn in [MY_CALL+'*.adif','W6A*.adif','wsjtx_log.adi','wsjtx_log_FT991a.adi','wsjtx_log_IC9700.adi','sats.adif']:
-                # ,'sprint.adif','*2024*.adif']:  # ,'wsjt_contest_log.adif','wsjtx_log_991a.adi','wsjtx_log_9700.adi'
+            for fn in flist:
                 print('LOG FILE found:',fn)
                 fname.append(fn)
         #print('fname 3=',fname)
@@ -140,7 +147,13 @@ class PARAMS:
             print(self.input_files)
             sys.exit(0)
 
-        self.output_file = args.o
+        if args.o==None:
+            if args.sql:
+                self.output_file = os.path.expanduser( '~/'+MY_CALL+'/'+MY_CALL+'.db' )
+            else:
+                self.output_file = 'New.adif'
+        else:
+            self.output_file = args.o
 
         self.DIFF = args.diff
         if self.DIFF and len(self.input_files)!=2:
