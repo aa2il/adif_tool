@@ -4,10 +4,11 @@
 # OLD: /usr/bin/python3 -u 
 ############################################################################################
 #
-# adif_tool.py - Rev 1.0
+# adif_tool.py - Rev 1.1
 # Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Program to manipulate adif files.
+# Rev 1.1 - Use Pandas instead of dicts
 #
 ############################################################################################
 #
@@ -183,7 +184,7 @@ if not P.QUIET:
 istart  = -1
 
 # Read adif input file(s)
-QSOs=[]
+QList=[]
 nfiles=0
 for f in P.input_files:
     nfiles+=1
@@ -196,6 +197,8 @@ for f in P.input_files:
 
     if ext=='.csv':
         print('Reading CSV file ...')
+        print('ADIF_TOOL - Need to update this pathway for Pandas!!!!!')
+        sys.exit(0)
         qsos1,hdr=read_csv_file(fname)
         print('hdr=',hdr)
 
@@ -210,29 +213,59 @@ for f in P.input_files:
         #sys.exit(0)
         
     else:
-        qsos1 = parse_adif(fname,verbosity=0)
+        qsos1 = parse_adif(fname,DF=True)
 
-    for qso in qsos1:
-        qso['file_name']=f
-        #if qso['call']=='K0TC':
-        #    print(qso)
+    # Add field with filename for these QSOs
+    nrows=qsos1.shape[0]
+    print('nrows=',nrows)
+    qsos1['file_name'] = nrows*[f]
 
-        if False:
-            for key in qso.keys():
-                if '><' in key:
-                    print('\nWhoops! bad key=',key)
-                    print('fname=',fname)
-                    print('qso=',qso)
-                    sys.exit(0)        
-
+    # Make a list qso dataframes
     if P.DIFF and nfiles==2:
         QSOs2 = qsos1
         found_start=False
     else:
-        QSOs = QSOs + qsos1
+        QList.append(qsos1)
+        #if nfiles>2:
+        #    break
+        
+# Merge QSOs from various files together
+#print('QList=',QList)
+QSOs=pd.concat(QList,ignore_index=True)
+#print(QSOs)
+
+# Remove dupes    
+#dupes = QSOs[QSOs.duplicated()]
+#print('\nDupes:\n',dupes)
+QSOs.drop_duplicates(inplace=True,ignore_index=True)
+print('\nDropped Dupes:\n',QSOs)
+
+# Fixups
+nqsos=QSOs.shape[0]
+UTC = pytz.utc
+ts=[]
+for i in range(nqsos):
+    qso=QSOs.loc[i]
+    date_off = qso["qso_date_off"]
+    time_off = qso["time_off"]
+    time_stamp = datetime.datetime.strptime( date_off +" "+ time_off , "%Y%m%d %H%M%S") \
+                                      .replace(tzinfo=UTC)
+    d=qso['qso_date']
+    if type(d)==float and np.isnan(d):
+        #qso['qso_date']=date_off
+        QSOs.loc[i,'qso_date']=qso['qso_date_off']
+    t=qso['time_on']
+    if type(t)==float and np.isnan(t):
+        #qso['time_on']=qso['time_off']
+        QSOs.loc[i,'time_on']=qso['time_off']
+    ts.append(time_stamp)
+    
+QSOs['time_stamp'] = ts
+print('\nDropped Dupes:\n',QSOs)
+#print('row 0=',QSOs.iloc[0])
     
 if not P.QUIET:
-    print("\nThere are ",len(QSOs)," input QSOs ...")
+    print("\nThere are ",nqsos," input QSOs ...")
 
 # Open script file for questionable lines
 if P.NOTES:
@@ -267,35 +300,21 @@ if P.ACA:
     #sys.exit(0)
 
 # Sift through the qsos and select those that meet the criteria
-QSOs_out=[]
+print('\nSifting ...')
+Saved_QSO_List=[]
 KEYS=[]
 nflagged=0
 nflagged2=0
 nqsos1=0
 nqsos2=0
-UTC = pytz.utc
-for qso in QSOs:
+for i in range(nqsos):
+    qso=QSOs.loc[i]
     nqsos1+=1
 
-    # Get qso date
-    if 'qso_date_off' in qso and len(qso['qso_date_off'])>0:
-        date_off = datetime.datetime.strptime( qso['qso_date_off'], "%Y%m%d").replace(tzinfo=UTC)
-
-        if 'qso_date' not in qso:
-            qso['qso_date']=qso['qso_date_off']
-    elif 'qso_date' in qso:
-        date_off = datetime.datetime.strptime( qso['qso_date'], "%Y%m%d").replace(tzinfo=UTC)
-    else:
-        print('\nHmmmmmmmmmm - cant figure out date!')
-        print(rec)
-        print(keys)
-        sys.exit(0)
-
-    # Patch up
-    if 'time_on' not in qso:
-        qso['time_on']=qso['time_off']
-        
     # Is the qso date in our window?
+    date_off = qso['time_stamp']
+    #print('date_off=',date_off,'\tdate0=',P.date0,'\tdate1=',P.date1)
+    #sys.exit(0)
     if date_off>=P.date0 and date_off<=P.date1:
         save_qso=True
     else:
@@ -309,6 +328,8 @@ for qso in QSOs:
         nflagged+=1
         print('\nOp flagged this qso:\n',qso)
         note=qso['call']+' FLAGGED '+str(nflagged)
+
+    #sys.exit(0)
         
     for key in qso.keys():
         
@@ -429,7 +450,7 @@ for qso in QSOs:
     cwo=None
     if 'comment' in qso:
         comment = qso['comment']
-        if comment[0:4]=='CWO:':
+        if type(comment)==str and comment[0:4]=='CWO:':
             cwo=comment[4:]
             #print('cwo=',cwo)
             #if ')' in comment:
@@ -509,7 +530,7 @@ for qso in QSOs:
             except:
                 error_trap('ADIF_TOOL - Saving QSO: I dont know what I am doing here?!')
             
-        QSOs_out.append(qso)
+        Saved_QSO_List.append(i)
         #print('qso=',qso)
         #sys.exit(0)
         if noted:
@@ -521,6 +542,8 @@ for qso in QSOs:
             fp.write('%s\n' % (cmd) )
             fp.flush()
             #sys.exit(0)
+
+QSOs_out=QSOs.iloc[Saved_QSO_List]
 
 if not P.QUIET:
     print("There are ",len(QSOs_out)," QSOs meeting criteria ...")
@@ -539,49 +562,10 @@ if not P.QUIET:
 # Sort list of Q's by date & time
 if not P.QUIET:
     print('Sorting ...')
-QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
+QSOs_out2 = QSOs_out.sort_values(by='time_stamp',ignore_index=True)
+print('Sorted:\n',QSOs)
 #print('rec0=',QSOs_out2[0])
 
-# Merge dupe Q's
-if not P.QUIET:
-    print('Merging ...')
-if P.SQL:
-    QSOs_out3=QSOs_out2
-else:
-    QSOs_out3=[]
-    valid=len(QSOs_out2)*[True]
-    for i in range(len(QSOs_out2)):
-        qso1=QSOs_out2[i]
-        keys1=qso1.keys()
-        #print(i,valid[i])
-        if valid[i]:
-            for j in range(i+1,len(QSOs_out2)):
-                qso2=QSOs_out2[j]
-                match=True
-                for field in ['call','qso_date','time_on']:
-                    match = match and (qso1[field]==qso2[field])
-                if match:
-                    #print('\nMatch!!!',i,j,valid[j])
-                    keys2=qso2.keys()
-                    #print(qso1)
-                    #print(qso2)
-                    valid[j]=False
-                    for key in keys2:
-                        if key!='unique' and (key not in keys1 or len(qso1[key])==0):
-                            qso1[key]=qso2[key]
-
-                # Check State QSO Contest IDs
-                if P.QPs!=None:
-                    qso3=check_id(qso1)
-                else:
-                    qso3=qso1
-                        
-            QSOs_out3.append(qso1)
-
-    #print(valid)        
-    #print(len(QSOs_out2),len(QSOs_out3))
-    #print('rec0=',QSOs_out3[0])
-        
 # Finally write out list of Q's
 p,n,ext=parse_file_name(P.output_file)
 if P.DIFF:
@@ -591,22 +575,26 @@ else:
 
 if ext=='.db':
     if not P.QUIET:
-        print('Writing output SQL file with',len(QSOs_out3),' QSOs ...')
-    write_sql_file(P.output_file,KEYS2,QSOs_out3)
+        print('Writing output SQL file with',len(QSOs_out2),' QSOs ...')
+    write_sql_file(P.output_file,KEYS2,QSOs_out2)
 elif ext=='.csv':
     if not P.QUIET:
-        print('Writing output CSV file with',len(QSOs_out3),' QSOs ...')
-    write_csv_file(P.output_file,KEYS2,QSOs_out3)
+        print('Writing output CSV file with',len(QSOs_out2),' QSOs ...')
+    write_csv_file(P.output_file,KEYS2,QSOs_out2)
 else:
     if not P.QUIET:
         print('Writing output adif file with',len(QSOs_out2),' QSOs ...')
     P.contest_name=''
-    write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=0,IGNORE=IGNORE_KEYS)
+    write_adif_log(QSOs_out2,P.output_file,P,SORT_KEYS=1,IGNORE=IGNORE_KEYS,VERBOSITY=0)
 
 # Show a list of QSOs for specified call(s)
 if P.CALLS or P.ACA:
     print('\nCall\tMode\t   Date\t\t  UTC\tBand\tRST Out\tRST In\t Contest Id\t\t Log File')
-    for qso in QSOs_out2:
+    
+    nqsos2=QSOs_out2.shape[0]
+    for i in range(nqsos2):
+        qso=QSOs_out2.loc[i]
+
         if 'rst_rcvd' in qso:
             rst_in=qso['rst_rcvd']
         else:

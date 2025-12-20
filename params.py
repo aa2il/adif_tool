@@ -27,11 +27,13 @@ import datetime
 import glob 
 from settings import CONFIG_PARAMS
 from operator import itemgetter
+import pytz
 
 ################################################################################
 
 # User params
 #DIR_NAME = os.path.expanduser( '~/.fldigi/logs/' )
+UTC = pytz.utc
 
 #######################################################################################
 
@@ -45,8 +47,10 @@ class PARAMS:
                               type=str,default=None,nargs='*')
         arg_proc.add_argument("-o", help="Output ADIF or CSV file",
                               type=str,default=None)
-        arg_proc.add_argument('-sql', action='store_true',
-                              help='Create SQL database')
+        #arg_proc.add_argument('-sql', action='store_true',
+        #                      help='Create SQL database')
+        arg_proc.add_argument('-merge', action='store_true',
+                              help='Merge into SQL database')
         arg_proc.add_argument('-sats', action='store_true',
                               help='Satellite QSOs')
         arg_proc.add_argument('-strict', action='store_true',
@@ -83,14 +87,15 @@ class PARAMS:
                                action='store_true')
         args = arg_proc.parse_args()
 
-        self.COMMENT = args.comments
-        self.SQL     = args.sql
-        self.SATS    = args.sats
-        self.STRICT  = args.strict
-        self.NOTES   = args.notes
-        self.ACA     = args.aca
-        self.THREE   = args.three
-        self.QUIET   = args.quiet
+        self.COMMENT      = args.comments
+        self.SQL          = False   # args.sql
+        self.SQL_MERGE    = args.merge
+        self.SATS         = args.sats
+        self.STRICT       = args.strict
+        self.NOTES        = args.notes
+        self.ACA          = args.aca
+        self.THREE        = args.three
+        self.QUIET        = args.quiet
         self.RunInspector = True
 
         calls=args.call
@@ -148,7 +153,7 @@ class PARAMS:
             sys.exit(0)
 
         if args.o==None:
-            if args.sql:
+            if False and args.sql:
                 self.output_file = os.path.expanduser( '~/'+MY_CALL+'/'+MY_CALL+'.db' )
             else:
                 self.output_file = 'New.adif'
@@ -172,14 +177,14 @@ class PARAMS:
                 #year = 2023
                 print('Year=',year)
                 after+='/'+str(year)
-            self.date0 = datetime.datetime.strptime( after, "%m/%d/%Y")  # Start date
+            self.date0 = datetime.datetime.strptime( after, "%m/%d/%Y").replace(tzinfo=UTC)    # Start date
 
         elif ndays>0:
             now = datetime.datetime.utcnow()
-            self.date0 = now-datetime.timedelta(days=ndays) 
+            self.date0 = ( now-datetime.timedelta(days=ndays) ).replace(tzinfo=UTC)
 
         else:
-            self.date0 = datetime.datetime.strptime( '01/01/1900', "%m/%d/%Y")  # Start date
+            self.date0 = datetime.datetime.strptime( '01/01/1900', "%m/%d/%Y").replace(tzinfo=UTC)  # Start date
     
         before=args.before
         if before:
@@ -190,7 +195,7 @@ class PARAMS:
                 before+='/'+year
         else:
             before='12/31/2299'
-        self.date1 = datetime.datetime.strptime( before, "%m/%d/%Y")  # End date
+        self.date1 = datetime.datetime.strptime( before, "%m/%d/%Y").replace(tzinfo=UTC)  # End date
 
         self.CONTEST_IDs=args.contest
         self.QPs=args.qps

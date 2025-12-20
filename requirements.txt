@@ -29,10 +29,11 @@ pytz
 numpy
 psutil
 scipy
-
 xlrd
 unidecode
 chardet
+pandas
+openpyxl
 
 #adif_io
 #adiftools

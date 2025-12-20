@@ -485,7 +485,7 @@ if __name__ == '__main__':
         fname2=P.fname
     else:
         fname2=P.fname+'2'
-    write_adif_log(qsos,fname2,P,SORT_KEYS=False)
+    write_adif_log(qsos,fname2,P,SORT_KEYS=0)
 
     print("Y'all come on back now ya hear!")
 
