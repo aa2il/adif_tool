@@ -1,4 +1,20 @@
 #!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "chardet",
+#     "numpy",
+#     "openpyxl",
+#     "pandas",
+#     "psutil",
+#     "pyserial",
+#     "pytz",
+#     "scipy",
+#     "unidecode",
+#     "xlrd",
+# ]
+# ///
+
 #
 # NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
 # OLD: /usr/bin/python3 -u 
@@ -539,7 +555,8 @@ if not P.QUIET:
 # Sort list of Q's by date & time
 if not P.QUIET:
     print('Sorting ...')
-QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
+#QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date','time_on'))
+QSOs_out2 = sorted(QSOs_out, key=itemgetter('qso_date_off','time_off'))
 #print('rec0=',QSOs_out2[0])
 
 # Merge dupe Q's

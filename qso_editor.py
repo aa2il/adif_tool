@@ -307,7 +307,7 @@ class QSO_INSPECTOR():
             row+=1
             Label(self.win, text=key+':').grid(row=row, column=0)
             box = Entry(self.win)
-            if key in ['call','qth','srx','srx_string']:
+            if key in ['call','qth','name','srx','srx_string']:
                 box.config({"background": "lightgreen"})
             box.grid(row=row,column=1,sticky=E+W)
             #box.delete(0, END)  
