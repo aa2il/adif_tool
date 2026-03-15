@@ -658,12 +658,12 @@ if P.ACA:
     maybe=list(set(maybe))
     print('\nPotential ACA oversights:',len(maybe))
     for call in maybe:
-        num = int( HIST[call]['cwops'] )
         try:
+            num = int( HIST[call]['cwops'] )
             status = HIST[call]['status']
         except:
-            print('Unknown status for call=',call,',\tnum=',num)
-        print(call,'\t',int(num),'\t',status)
+            print('CW OOoooppps!   call=',call)
+            print('\tHIST=',HIST[call])
     
 print("\nThat's all folks!")
 

@@ -37,7 +37,7 @@ import platform
 import argparse
 from widgets_tk import StatusBar,SPLASH_SCREEN
 from ToolTip import *
-import webbrowser
+from utilities import open_web_page
 
 ################################################################################
 
@@ -409,8 +409,7 @@ class QSO_INSPECTOR():
         print('\n********************************** Call Lookup ...',call)
         if len(call)>=3:
             print('CALL_LOOKUP: Looking up '+call+' on QRZ.com')
-            link = 'https://www.qrz.com/db/' + call
-            webbrowser.open(link, new=2)
+            open_web_page('https://www.qrz.com/db/' + call)
 
     def SkipRest(self):
         print('SkipRest ...')
