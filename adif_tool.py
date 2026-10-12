@@ -15,13 +15,11 @@
 # ]
 # ///
 
-#
-# NEW: /home/joea/miniconda3/envs/aa2il/bin/python -u
 # OLD: /usr/bin/python3 -u 
 ############################################################################################
 #
 # adif_tool.py - Rev 1.0
-# Copyright (C) 2021-5 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
+# Copyright (C) 2021-6 by Joseph B. Attili, joe DOT aa2il AT gmail DOT com
 #
 # Program to manipulate adif files.
 #
@@ -44,7 +42,7 @@ import os
 import datetime
 import numpy as np
 from params import *
-from fileio import *
+from fileio import *              # Need many functions from here - dont be cute!
 from pprint import pprint
 from dx import ChallengeData
 from load_history import load_history
@@ -282,11 +280,18 @@ if P.ACA:
 
     #sys.exit(0)
 
+# Check how many QSOs were flagged
+nflagged=0
+nflagged2=0
+for qso in QSOs:
+    if P.NOTES and 'flagged' in qso and qso['flagged']:
+        nflagged+=1
+print('\nThere are',nflagged,'flags on the field!\n')
+        
+    
 # Sift through the qsos and select those that meet the criteria
 QSOs_out=[]
 KEYS=[]
-nflagged=0
-nflagged2=0
 nqsos1=0
 nqsos2=0
 UTC = pytz.utc
@@ -322,7 +327,6 @@ for qso in QSOs:
     noted=False
     if P.NOTES and 'flagged' in qso and qso['flagged']:
         noted=True
-        nflagged+=1
         print('\nOp flagged this qso:\n',qso)
         note=qso['call']+' FLAGGED '+str(nflagged)
         
